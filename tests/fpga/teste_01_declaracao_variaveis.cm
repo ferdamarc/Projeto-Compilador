@@ -1,0 +1,6 @@
+/* Teste 1: Declaração básica de variáveis */
+void main(void){
+    int x;
+    int y;
+    int z;
+}

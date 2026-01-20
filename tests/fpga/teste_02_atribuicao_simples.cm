@@ -1,0 +1,11 @@
+/* Teste 2: Atribuição simples de valores */
+void main(void){
+    int x;
+    int y;
+    
+    x = 10;
+    y = 20;
+    
+    output(x);
+    output(y);
+}

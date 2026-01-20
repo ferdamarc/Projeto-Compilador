@@ -1,0 +1,16 @@
+/* Media artimetica entre dois elementos inteiros */
+
+int main(void){
+    int a;
+    int b;
+    int media;
+
+    a = 3;
+    b = 3;
+
+    media = (a + b) / 2;
+
+    output(media);
+
+    return 0;
+}

@@ -1,0 +1,22 @@
+/* Teste 3: Operações aritméticas básicas */
+void main(void){
+    int a;
+    int b;
+    int soma;
+    int subtracao;
+    int multiplicacao;
+    int divisao;
+    
+    a = 15;
+    b = 5;
+    
+    soma = a + b;
+    subtracao = a - b;
+    multiplicacao = a * b;
+    divisao = a / b;
+    
+    output(soma);
+    output(subtracao);
+    output(multiplicacao);
+    output(divisao);
+}

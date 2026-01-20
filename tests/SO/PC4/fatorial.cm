@@ -1,0 +1,31 @@
+/* Calculo do fatorial do número n */
+
+int fatorial(int n){
+    int res;
+    int a;
+
+    if(n==1){
+        return 1;
+    }
+    else{
+        a = n - 1;
+        res = fatorial(a) * n;
+        return res;
+    }
+}
+
+int main(void){
+    int n;
+    int fat;
+    
+    no_op();
+    no_op();
+
+    n = input();
+
+    fat = fatorial(n);
+
+    output(fat);
+
+    return 0;
+}

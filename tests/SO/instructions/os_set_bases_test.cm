@@ -1,0 +1,27 @@
+/* 
+ * Teste das instruções os_set_dm_base e os_set_im_base
+ * 
+ * os_set_dm_base(offset_dm)  -> $s0 = offset_dm (base memória de dados)
+ * os_set_im_base(offset_im)  -> $s1 = offset_im (base memória de instruções)
+ */
+
+void main(void){
+    int offset_dm;
+    int offset_im;
+    
+    /* Define os offsets */
+    offset_dm = 500;
+    offset_im = 1000;
+    
+    /* Configura os registradores base */
+    os_set_dm_base(offset_dm);    /* $s0 = 500 */
+    os_set_im_base(offset_im);    /* $s1 = 1000 */
+    
+    no_op();
+    
+    /* Reset para 0 */
+    os_set_dm_base(0);
+    os_set_im_base(0);
+    
+    no_op();
+}

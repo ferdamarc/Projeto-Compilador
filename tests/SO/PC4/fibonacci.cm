@@ -1,0 +1,37 @@
+/* Programa para mostrar qual seria o número para o n-ésimo elemento
+da sequência de Fibonacci */
+
+int fibonacci(int n){
+    int t1; int t2; int t3; int i;
+    t1 = 0;
+    t2 = 1;
+    i = 2;
+
+    if (n == 0) {
+        return t1;
+    }
+    else {
+        if (n == 1) {
+            return t2;
+        } else {
+            while (i <= n) {
+                t3 = t1 + t2;
+                t1 = t2;
+                t2 = t3;
+                i = i + 1;
+            }
+        }
+    }
+
+    return t3;
+}
+
+int main(void){
+    int n;
+
+    n = 5;
+
+    output(fibonacci(n));
+
+    return 0;
+}

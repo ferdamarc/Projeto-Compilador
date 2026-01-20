@@ -1,0 +1,45 @@
+/* Programa para somar dois vetores */
+
+int array1[10];
+int array2[10];
+int array3[10];
+
+void somaVetores(int vet1[], int vet2[], int vet3[], int tamanho) {
+    int i;
+    i = 0;
+
+    while (i < tamanho) {
+        vet3[i] = vet1[i] + vet2[i];
+        i = i + 1;
+    }
+}
+
+int main(void) {
+    int i;
+
+    i = 0;
+    /* Atribuindo no array1 */
+    while (i < 10) {
+        array1[i] = i;
+        i = i + 1;
+    }
+
+    i = 0;
+    /* Atribuindo no array2 */
+    while (i < 10) {
+        array2[i] = 2*i;
+        i = i + 1;
+    }
+
+    /* Somando os vetores */
+    somaVetores(array1, array2, array3, 10);
+
+    /* Imprimindo o vetor resultante */
+    i = 0;
+    while (i < 10) {
+        output(array3[i]);
+        i = i + 1;
+    }
+
+    return 0;
+}

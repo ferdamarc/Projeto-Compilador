@@ -1,0 +1,22 @@
+/* Teste 4: Operações de comparação */
+void main(void){
+    int x;
+    int y;
+    int resultado;
+    
+    x = 10;
+    y = 5;
+    
+    resultado = x > y;
+    output(resultado);
+    resultado = x < y;
+    output(resultado);
+    resultado = x == y;
+    output(resultado);
+    resultado = x != y;
+    output(resultado);
+    resultado = x >= y;
+    output(resultado);
+    resultado = x <= y;
+    output(resultado);
+}

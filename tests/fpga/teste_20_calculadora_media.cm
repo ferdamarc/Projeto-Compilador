@@ -1,0 +1,37 @@
+/* Teste 20: Programa complexo - calculadora de média */
+int somarVetor(int arr[], int tamanho) {
+    int i;
+    int soma;
+    
+    i = 0;
+    soma = 0;
+    
+    while (i < tamanho) {
+        soma = soma + arr[i];
+        i = i + 1;
+    }
+    
+    return soma;
+}
+
+int calcularMedia(int arr[], int tamanho) {
+    int soma;
+    
+    soma = somarVetor(arr, tamanho);
+    return soma / tamanho;
+}
+
+void main(void){
+    int notas[5];
+    int media;
+    
+    notas[0] = 85;
+    notas[1] = 90;
+    notas[2] = 78;
+    notas[3] = 92;
+    notas[4] = 88;
+    
+    media = calcularMedia(notas, 5);
+    
+    output(media);
+}

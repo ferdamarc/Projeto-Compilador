@@ -1,0 +1,19 @@
+/* Teste combinado input/output com cálculo */
+void main(void){
+    int a;
+    int b;
+    int soma;
+    int produto;
+    int diferenca;
+    
+    a = input();
+    b = input();
+    
+    soma = a + b;
+    produto = a * b;
+    diferenca = a - b;
+    
+    output(soma);
+    output(produto);
+    output(diferenca);
+}

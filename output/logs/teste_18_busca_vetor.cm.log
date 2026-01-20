@@ -1,0 +1,10 @@
+[1;32mCompilando...
+[0m[0;33mERRO SINTÁTICO: [0m[1;37m"-" [0;33mLINHA: [1;37m12[0m | syntax error
+[1;32mRECUPERAÇÃO DE ERRO: [0mSincronizando em ';'
+[0;31m
+========== RESUMO DA ANALISE ==========
+Erros sintaticos encontrados: 1
+Total de erros: 1
+==========================================
+Nao foi possivel gerar o codigo devido aos erros encontrados.
+[0m

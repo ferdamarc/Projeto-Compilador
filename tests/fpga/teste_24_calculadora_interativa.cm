@@ -1,0 +1,33 @@
+/* Teste 24: Calculadora interativa com input/output */
+int calcular(int operacao, int a, int b) {
+    int resultado;
+    
+    if (operacao == 1) {
+        resultado = a + b;
+    } else if (operacao == 2) {
+        resultado = a - b;
+    } else if (operacao == 3) {
+        resultado = a * b;
+    } else if (operacao == 4) {
+        resultado = a / b;
+    } else {
+        resultado = 0;
+    }
+    
+    return resultado;
+}
+
+void main(void){
+    int operacao;
+    int num1;
+    int num2;
+    int resultado;
+    
+    operacao = input();
+    num1 = input();
+    num2 = input();
+    
+    resultado = calcular(operacao, num1, num2);
+    
+    output(resultado);
+}

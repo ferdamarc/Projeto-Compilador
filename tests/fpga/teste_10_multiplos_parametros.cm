@@ -1,0 +1,19 @@
+/* Teste 10: Função com múltiplos parâmetros */
+int somar(int a, int b) {
+    return a + b;
+}
+
+int subtrair(int x, int y) {
+    return x - y;
+}
+
+void main(void){
+    int resultado1;
+    int resultado2;
+    
+    resultado1 = somar(10, 5);
+    resultado2 = subtrair(20, 8);
+    
+    output(resultado1);
+    output(resultado2);
+}

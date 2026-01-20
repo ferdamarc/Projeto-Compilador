@@ -1,0 +1,9 @@
+/* Teste da instrução os_save_return */
+
+void main(void)
+{
+    int x;
+    x = 10;
+    os_save_return();  /* Salva o ponto de retorno do SO */
+    output(x);
+}

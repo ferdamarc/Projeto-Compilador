@@ -1,0 +1,14 @@
+/* Teste 5: Estrutura condicional if simples */
+void main(void){
+    int x;
+    int y;
+    
+    x = 10;
+    y = 5;
+    
+    if (x > y) {
+        y = x;
+    }
+    
+    output(y);
+}

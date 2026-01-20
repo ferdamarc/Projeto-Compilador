@@ -1,0 +1,11 @@
+int main(void){
+
+    /* Teste de BIOS */
+    writeLcd(10); /* INICIANDO O SISTEMA... */
+
+    writeLcd(20); /* CARREGANDO O SISTEMA... */
+
+    writeLcd(30); /* SISTEMA PRONTO! */
+
+    return 0;
+}

@@ -1,0 +1,17 @@
+/* Teste 6: Estrutura condicional if-else */
+void main(void){
+    int x;
+    int y;
+    int maior;
+    
+    x = 10;
+    y = 15;
+    
+    if (x > y) {
+        maior = x;
+    } else {
+        maior = y;
+    }
+    
+    output(maior);
+}

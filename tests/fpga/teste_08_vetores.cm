@@ -1,0 +1,13 @@
+/* Teste 8: Declaração de vetores */
+void main(void){
+    int vetor[5];
+    int indice;
+    
+    indice = 0;
+    vetor[indice] = 10;
+    indice = 1;
+    vetor[indice] = 20;
+    
+    output(vetor[0]);
+    output(vetor[1]);
+}

@@ -1,0 +1,28 @@
+/* Teste 18: Algoritmo de busca em vetor */
+int buscar(int arr[], int tamanho, int valor) {
+    int i;
+    
+    i = 0;
+    while (i < tamanho) {
+        if (arr[i] == valor) {
+            return i;
+        }
+        i = i + 1;
+    }
+    return -1;
+}
+
+void main(void){
+    int numeros[5];
+    int posicao;
+    
+    numeros[0] = 10;
+    numeros[1] = 20;
+    numeros[2] = 30;
+    numeros[3] = 40;
+    numeros[4] = 50;
+    
+    posicao = buscar(numeros, 5, 30);
+    
+    output(posicao);
+}

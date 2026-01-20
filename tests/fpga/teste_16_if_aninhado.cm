@@ -1,0 +1,25 @@
+/* Teste 16: Estruturas condicionais aninhadas */
+void main(void){
+    int x;
+    int y;
+    int z;
+    int resultado;
+    
+    x = 10;
+    y = 5;
+    z = 15;
+    
+    if (x > y) {
+        if (x > z) {
+            resultado = x;
+        } else {
+            resultado = z;
+        }
+    } else {
+        if (y > z) {
+            resultado = y;
+        } else {
+            resultado = z;
+        }
+    }
+}

@@ -1,0 +1,333 @@
+/*
+    Sistema Operacional Simples
+
+    Autor: Fernando Daniel Marcelino
+    Docente: Prof. Dr. Tiago Oliveira
+    Instituto de Ciência e Tecnologia - UNIFESP
+*/
+
+int CURRENT_PROCESS;
+
+int START_DM;
+int PROG_INTERVAL_DM;
+
+int START_IM;
+int PROG_INTERVAL_IM;
+
+int data_memory_procs[11];
+int instruction_memory_procs[11];
+
+/* Preemptive mode */
+int STATE_PROCESS[11];              /* 0 = null, 1 = ready, 2 = running, 3 = waiting, 4 = finished */
+int PROCESS_QUEUE[11];              /* Fila de processos */
+int PROC_PC_SALVO[11];              /* PC salvo de cada processo */
+int FIRST_EXECUTION_PROC[11];       /* Indica se é a primeira execução do processo */
+int NUMBER_OF_PROCS;                /* Número de processos carregados */
+int ACTIVE_PROCESSES;               /* Número de processos ativos (não finalizados) */
+
+
+void init_constants(void) {
+    int i;
+    CURRENT_PROCESS = 0;
+
+    START_DM = 500;          /* base do primeiro programa de usuário */
+    PROG_INTERVAL_DM = 500;  /* cada processo tem 500 palavras de dados */
+
+    START_IM = 1000;         /* base do primeiro programa de usuário */
+    PROG_INTERVAL_IM = 300;  /* cada programa tem 300 instruções */
+
+    data_memory_procs[0] = 0;
+    instruction_memory_procs[0] = 0;
+
+    i = 1;
+    while (i <= 10) {
+        data_memory_procs[i] = (i-1) * PROG_INTERVAL_DM + START_DM;
+        instruction_memory_procs[i] = (i-1) * PROG_INTERVAL_IM + START_IM;
+        i = i + 1;
+    }
+
+    show_lcd(10);       /* Inicialização das variáveis SO */
+}
+
+void reset_process_flags(void) {
+    int i;
+    i = 0;
+    while (i <= 10) {
+        STATE_PROCESS[i] = 0;
+        PROC_PC_SALVO[i] = 0;
+        PROCESS_QUEUE[i] = 0;
+        FIRST_EXECUTION_PROC[i] = 1;
+        i = i + 1;
+    }
+    ACTIVE_PROCESSES = 0;
+    NUMBER_OF_PROCS = 0;
+}
+
+void carregar_processo(int prog_num) {
+    
+    if (STATE_PROCESS[prog_num] == 0) { /* Evita carregar o mesmo duas vezes */
+        STATE_PROCESS[prog_num] = 1;    /* Estado: Pronto */
+        
+        PROC_PC_SALVO[prog_num] = instruction_memory_procs[prog_num];
+
+        ACTIVE_PROCESSES = ACTIVE_PROCESSES + 1;
+    }
+}
+
+int clamp_prog_num(int v) {
+    if (v < 1) {
+        return 1;
+    }
+    if (v > 10) {
+        return 10;
+    }
+    return v;
+}
+
+void non_preemp_choice(void){
+    int chosen_program;
+
+    show_lcd(3);        /* Escolha o programa (1-10) */
+
+    chosen_program = input();     /* lê dos switches */
+    CURRENT_PROCESS = clamp_prog_num(chosen_program);
+}
+
+/* Versão simples de "rodar um programa" */
+void run_non_preemptive_mode(int prog_num) {
+    int offset_im;
+    int offset_dm;
+
+    offset_im = instruction_memory_procs[prog_num];
+    offset_dm = data_memory_procs[prog_num];
+
+    os_save_context();
+
+    os_set_pc(offset_im);
+    os_set_im_base(offset_im);
+    os_set_dm_base(offset_dm);
+
+    os_jump_to();
+
+    /* programa executando ... */
+
+    /* salva conteúdo do processo ao retornar */
+    os_save_context();
+
+    /* volta ao contexto do SO */
+    os_set_dm_base(0);
+    os_set_im_base(0);
+    os_restore_context();
+
+    show_lcd(28); /* Resetando flags... */
+    reset_process_flags();
+}
+
+void how_many_processes(void){
+    int choice;
+
+    show_lcd(11);        /* Quantos programas? */
+    choice = input();
+
+    NUMBER_OF_PROCS = clamp_prog_num(choice);
+}
+
+int get_quantum_time(void){
+    int choice;
+
+    show_lcd(14);        /* Escolha o quantum */
+    choice = input();
+
+    return choice;
+}
+
+/* Por enquanto, quero apenas implementar uma fila circular simples */
+void run_preemptive_mode(void){
+    int idx;
+    int proc;
+    int interruption_type;
+    int jump_prog;
+    int offset_im;
+    int offset_dm;
+    int first_execution;
+
+    idx = 0;
+
+    show_lcd(17);  /* Executando o modo preemptivo */
+
+    /* Roda em Round-Robin seguindo a ordem do PROCESS_QUEUE */
+    while (ACTIVE_PROCESSES > 0) {
+
+        /* show_lcd(9); */  /* Estou aqui! */
+        proc = PROCESS_QUEUE[idx];
+
+        /* Se ainda não terminou, executa */
+        if (STATE_PROCESS[proc] != 4) {
+            STATE_PROCESS[proc] = 2;   /* running */
+
+            jump_prog = PROC_PC_SALVO[proc];
+            offset_dm = data_memory_procs[proc];
+            offset_im = instruction_memory_procs[proc];
+            first_execution = FIRST_EXECUTION_PROC[proc];
+
+            /* É necessário verificar se é a primeira execução do processo */
+            if (first_execution == 1) {
+                FIRST_EXECUTION_PROC[proc] = 0;
+
+                show_lcd(27); /* Primeira vez */
+
+                os_set_im_base(0);
+                os_set_dm_base(0);
+
+                /* Contexto do SO */
+                show_lcd(18);  /* Salvando contexto... */
+                os_save_context();
+
+                show_lcd(19);  /* Setando bases... */
+                os_set_pc(offset_im); /* Primeira vez inicia de offset_im */
+                os_set_im_base(offset_im);
+                os_set_dm_base(offset_dm);
+            }
+            else {
+                show_lcd(26); /* Programa já executado antes */
+
+                os_set_im_base(0);
+                os_set_dm_base(0);
+
+                /* Contexto do SO */
+                show_lcd(18);  /* Salvando contexto... */
+                os_save_context();
+                
+                /* Mudança de contexto para o processo */
+                show_lcd(19);  /* Setando bases... */
+                os_set_pc(jump_prog); /* Retoma do PC salvo */
+                os_set_im_base(offset_im);
+                os_set_dm_base(offset_dm);
+
+                show_lcd(20);  /* Restaurando contexto... */
+                os_restore_context();
+            }
+
+            show_lcd(16);  /* Setando o quantum... */
+            set_interr_timer(50);
+            
+            show_lcd(21);  /* Saltando para o processo... */
+            os_jump_to();
+
+            show_lcd(22);  /* Voltando ao SO... */
+
+            /* Salva contexto do processo ao retornar da interrupção */
+            os_save_context();
+
+            /* Volta ao contexto do SO */
+            os_set_im_base(0);
+            os_set_dm_base(0);
+
+            os_restore_context();
+            interruption_type = get_interr_type();
+
+            /* Caso interrupção de timer */
+            if (interruption_type == 1) {
+                show_lcd(23);  /* Interrupção de Timer */
+
+                STATE_PROCESS[proc] = 1;   /* ready */
+                PROC_PC_SALVO[proc] = get_pc();
+
+                /* === Apenas para debug === */
+                /* output(PROC_PC_SALVO[proc]);*/ 
+            }
+            /* Caso término do programa; HALT */
+            else if (interruption_type == 2) {
+                show_lcd(24);  /* Interrupção de HALT */
+
+                STATE_PROCESS[proc] = 4;   /* finished */
+                ACTIVE_PROCESSES = ACTIVE_PROCESSES - 1;
+            }
+        }
+
+        show_lcd(25);  /* Processo Atualizado */
+        /* Avança circularmente */
+        idx = idx + 1;
+        if (idx >= NUMBER_OF_PROCS) {
+            idx = 0;
+        }
+    }
+
+    /* opcional */
+    show_lcd(15);  /* fim do modo preemptivo */
+    
+    show_lcd(28); /* Resetando flags... */
+    reset_process_flags();
+}
+
+void preemp_choice(void){
+    int i;
+    int num_process;
+    int choice;
+
+    how_many_processes();
+
+    i = 0;
+    while (i < NUMBER_OF_PROCS) {
+
+        /* Você pode escolher outro código de LCD se quiser */
+        show_lcd(12);        /* Escolha os IDs em ordem */
+
+        choice = input();
+        num_process = clamp_prog_num(choice);
+
+        /* Evita repetido: se já foi carregado, pede outro */
+        if (STATE_PROCESS[num_process] == 0) {
+            PROCESS_QUEUE[i] = num_process;
+            carregar_processo(num_process);
+            i = i + 1;
+        }
+        else {
+            show_lcd(13);   /* Repetido, escolha outro */
+        }
+    }
+}
+
+
+void main(void) {
+    int running_shell;
+    int mode_choice;
+
+    init_constants();
+    reset_process_flags();
+
+    show_lcd(1);        /* Bem-vindo ao OS_Fer */
+    no_op();
+    no_op();
+    no_op();
+    no_op();
+    no_op();
+    no_op();
+    no_op();
+    no_op();
+    no_op();
+    running_shell = 1;
+
+    while (running_shell == 1) {
+        show_lcd(6);        /* Escolha apenas: 1-PM 2-NPM */
+        mode_choice = input();
+
+        if(mode_choice == 1){
+            show_lcd(7);        /* Modo Preemptivo Escolhido */
+
+            preemp_choice();
+            run_preemptive_mode();
+        }
+        else if(mode_choice == 2){
+            show_lcd(8);        /* Modo Não Preemptivo Escolhido */
+
+            non_preemp_choice();
+            run_non_preemptive_mode(CURRENT_PROCESS);
+        }
+        else{
+            show_lcd(29); /* Escolha inválida */
+        }
+    }
+
+    return 0;
+}

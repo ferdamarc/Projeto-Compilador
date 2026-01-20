@@ -1,0 +1,11 @@
+/* Teste simples da instrução os_set_base */
+
+void main(void){
+    int offset;
+    
+    offset = 500;
+    
+    os_set_base(offset);
+    
+    no_op();
+}

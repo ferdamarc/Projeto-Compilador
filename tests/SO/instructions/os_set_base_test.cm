@@ -1,0 +1,26 @@
+/* 
+ * Teste da instrução os_set_base
+ * 
+ * Este teste demonstra o uso da instrução os_set_base(offset_dm)
+ * que carrega um valor no registrador $s0 (base register)
+ */
+
+void main(void){
+    int base_offset;
+    int test_value;
+    
+    /* Define o offset da memória de dados */
+    base_offset = 1000;
+    
+    /* Configura o registrador $s0 com o offset */
+    os_set_base(base_offset);
+    
+    /* Testa com outro valor */
+    test_value = 2500;
+    os_set_base(test_value);
+    
+    /* Reset para 0 */
+    os_set_base(0);
+    
+    no_op();
+}

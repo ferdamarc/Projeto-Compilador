@@ -1,0 +1,19 @@
+/* Teste 12: While com condições complexas */
+void main(void){
+    int x;
+    int y;
+    int contador;
+    
+    x = 10;
+    y = 5;
+    contador = 0;
+    
+    while (x > y) {
+        if (contador >= 3) {
+            x = y;
+        } else {
+            x = x - 1;
+            contador = contador + 1;
+        }
+    }
+}

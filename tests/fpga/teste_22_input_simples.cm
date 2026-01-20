@@ -1,0 +1,10 @@
+/* Teste específico para função input */
+void main(void){
+    int numero;
+    int dobro;
+    
+    numero = input();
+    dobro = numero * 2;
+    
+    output(dobro);
+}

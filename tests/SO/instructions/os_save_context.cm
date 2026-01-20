@@ -1,0 +1,6 @@
+/* Teste da instrução os_save_context */
+
+void main(void)
+{
+    os_save_context();
+}

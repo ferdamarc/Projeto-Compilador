@@ -1,0 +1,16 @@
+
+
+void define_dm_offset(int offset_dm){
+    offset_dm = 50;
+}
+
+void main(void){
+    int offset_dm;
+
+    define_dm_offset(offset_dm);
+
+    os_set_base(offset_dm);
+
+    no_op();
+    /* forçar no binario uma instrucao de output para mostrar o conteúdo do $s0 */
+}

@@ -1,0 +1,30 @@
+/*
+    Teste da instrução get_interr_type()
+    
+    Este teste valida se a instrução get_interr_type() 
+    retorna corretamente o tipo de interrupção.
+    
+    Esperado: 
+    - Tipo 1 = Interrupção por timer
+    - Tipo 2 = Interrupção por HALT
+    
+    Nota: Este teste deve ser executado em contexto de SO
+    para capturar interrupções.
+*/
+
+int tipo_interrupcao;
+
+int main(void) {
+    int a;
+    a=0;
+    
+    no_op();
+    tipo_interrupcao = get_interr_type();
+    no_op();
+
+    output(tipo_interrupcao);
+    no_op();
+
+    
+    return 0;
+}

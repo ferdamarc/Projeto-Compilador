@@ -1,0 +1,16 @@
+/* Teste 15: Expressões complexas e precedência */
+void main(void){
+    int a;
+    int b;
+    int c;
+    int resultado;
+    
+    a = 5;
+    b = 3;
+    c = 2;
+    
+    resultado = a + b * c;
+    resultado = (a + b) * c;
+    resultado = a * b + c * a;
+    resultado = a - b + c;
+}

@@ -1,0 +1,14 @@
+int main(void){
+    int base;
+    int altura;
+    int res;
+
+    altura = 3;
+    base = 4;
+
+    res = base * altura / 2;
+    
+    output(res);
+    
+    return 0;
+}

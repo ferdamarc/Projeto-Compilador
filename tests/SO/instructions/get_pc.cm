@@ -1,0 +1,13 @@
+int pc;
+
+void init_constants(void){
+    pc = 0;
+}
+
+void main(void){
+    init_constants();
+    no_op();
+    pc = get_pc();
+    no_op();
+    output(pc);
+}

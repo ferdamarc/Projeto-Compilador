@@ -1,0 +1,18 @@
+/* Teste 17: Loops aninhados */
+void main(void){
+    int i;
+    int j;
+    int contador;
+    
+    i = 0;
+    contador = 0;
+    
+    while (i < 3) {
+        j = 0;
+        while (j < 2) {
+            contador = contador + 1;
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+}

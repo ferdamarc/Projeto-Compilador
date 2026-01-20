@@ -1,0 +1,6 @@
+/* Teste da instrução os_restore_context */
+
+void main(void)
+{
+    os_restore_context();
+}

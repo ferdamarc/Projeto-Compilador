@@ -1,0 +1,30 @@
+/* Programa para calcular a potência de um número
+Entradas: base (int), exp (int)
+Saídas: resultado (int)
+*/
+
+int potencia(int base, int exp){
+    int i; int resultado;
+    resultado = 1;
+    i = 0;
+
+    while(i < exp){
+        resultado = resultado * base;
+        i = i + 1;
+    }
+
+    return resultado;
+}
+
+int main(void){
+    int base; int exp; int res;
+
+    base = 2;
+    exp = 3;
+
+    res = potencia(base, exp);
+
+    output(res);
+
+    return 0;
+}

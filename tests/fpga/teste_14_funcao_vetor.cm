@@ -1,0 +1,16 @@
+/* Teste 14: Função que trabalha com vetores */
+void preencherVetor(int arr[], int tamanho) {
+    int i;
+    i = 0;
+    
+    while (i < tamanho) {
+        arr[i] = i * 2;
+        i = i + 1;
+    }
+}
+
+void main(void){
+    int meuVetor[4];
+    
+    preencherVetor(meuVetor, 4);
+}

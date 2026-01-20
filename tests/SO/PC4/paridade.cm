@@ -1,0 +1,27 @@
+/*
+    Teste de função para verificar se um número é par ou ímpar.
+    Como cm não possui a operação de módulo, utilizamos o operador de divisão de forma a verificar o resto da divisão por 2.
+    Retorna 1 se for par e 0 se for ímpar.
+*/
+
+int paridade(int n){
+    if((n / 2) * 2 == n){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
+int main(void){
+    int n;
+    int res;
+
+    n = 3;
+
+    res = paridade(n);
+
+    output(res);
+
+    return 0;
+}

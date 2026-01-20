@@ -1,0 +1,18 @@
+/* Teste 25: Fibonacci com input/output */
+int fibonacci(int n) {
+    if (n <= 1) {
+        return n;
+    } else {
+        return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+}
+
+void main(void){
+    int numero;
+    int resultado;
+    
+    numero = input();
+    resultado = fibonacci(numero);
+    
+    output(resultado);
+}

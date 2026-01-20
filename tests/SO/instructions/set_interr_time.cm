@@ -1,0 +1,10 @@
+/* Teste simples da instrução set_interr_timer */
+
+void main(void){
+    int time;
+    time = 30;
+
+    set_interr_timer(35);
+    
+    no_op();
+}

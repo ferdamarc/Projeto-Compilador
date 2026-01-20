@@ -1,0 +1,25 @@
+/* Programa para contagem regressiva a partir de um número n */
+
+void mostra(int partir){
+    int i;
+
+    i = partir;
+
+    while(i > 0){
+        output(i);
+        i = i - 1;
+    }
+
+    output(i);
+
+}
+
+int main(void){
+    int partir;
+
+    partir = 3;
+
+    mostra(partir);
+
+    return 0;
+}

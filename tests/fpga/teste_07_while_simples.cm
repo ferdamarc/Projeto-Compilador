@@ -1,0 +1,14 @@
+/* Teste 7: Loop while simples */
+void main(void){
+    int contador;
+    int limite;
+    
+    contador = 0;
+    limite = 5;
+    
+    while (contador < limite) {
+        contador = contador + 1;
+    }
+    
+    output(contador);
+}

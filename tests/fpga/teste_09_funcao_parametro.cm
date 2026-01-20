@@ -1,0 +1,16 @@
+/* Teste 9: Função simples com parâmetro */
+int dobrar(int numero) {
+    int resultado;
+    resultado = numero * 2;
+    return resultado;
+}
+
+void main(void){
+    int x;
+    int y;
+    
+    x = 5;
+    y = dobrar(x);
+    
+    output(y);
+}
