@@ -1,9 +1,5 @@
 #include "synthesis.h"
 
-// Flag de debug (descomente para ativar logs detalhados)
-// #define DEBUG_COMPILER
-
-
 unsigned int get_opcode(char* nome, instruction_type_t tipo) {
     int opcode = -1;
 
@@ -186,19 +182,7 @@ void binary(FILE* arquivo) {
     binary_j_t* binJ;
     binary_r_t* binR;
     
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG BINARIO] Iniciando conversao de %d instrucoes assembly para binario...\n", assembly_index);
-#endif
-    
     for (int i = 0; i < assembly_index; i++) {
-        if (i % 100 == 0 && i > 0) {
-        
-#ifdef DEBUG_COMPILER
-    printf("[LOG BINARIO] Processando instruction %d/%d\n", i, assembly_index);
-#endif
-        }
-        
         if (assembly_instructions[i] == NULL) {
             fprintf(stderr, "[ERRO BINARIO] Instrucao NULL no indice %d\n", i);
             continue;
@@ -232,15 +216,10 @@ void binary(FILE* arquivo) {
         }
         fprintf(arquivo, "\n");
     }
-    
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG BINARIO] Conversao concluida com sucesso\n");
-#endif
 }
 
 
-void binario_debug(FILE* arquivo) {
+void binary_debug(FILE* arquivo) {
     binary_i_t* binI;
     binary_j_t* binJ;
     binary_r_t* binR;

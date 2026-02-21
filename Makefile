@@ -90,7 +90,7 @@ test: compiler
 	@log_file_name=$$(basename "$(file)").log; \
 	log_file_path=$(OUTPUT_DIR)/logs/$$log_file_name; \
 	echo "Attempting to save log to: $$log_file_path\n"; \
-	./compiler "$(file)" -ca -ci -v > "$$log_file_path"; \
+	./compiler "$(file)" > "$$log_file_path"; \
 	if [ $$? -eq 0 ]; then \
 		echo "Test output for $(file) saved to $$log_file_path\n"; \
 	else \

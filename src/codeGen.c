@@ -1,8 +1,5 @@
 #include "synthesis.h"
 
-// Flag de debug (descomente para ativar logs detalhados)
-// #define DEBUG_COMPILER
-
 
 instruction_t** intermediate_code = NULL;
 int num_reg = 1;                      /* Current register number */
@@ -404,10 +401,6 @@ void intermediate_code_decl_func(ast_node_ptr arvoreSintatica, symbol_item_ptr t
 
     strcpy(func_name, arvoreSintatica->children[1]->lexeme);
 
-#ifdef DEBUG_COMPILER
-    printf("[LOG CI] Gerando funcao: %s\n", func_name);
-#endif
-
     /* Create FUN instruction with placeholder for parameter count */
     func = create_instruction("FUN");
     func->arg1 = create_address(ADDR_STRING, 0, arvoreSintatica->lexeme, 0);
@@ -486,11 +479,6 @@ void intermediate_code_decl_var(ast_node_ptr arvoreSintatica, symbol_item_ptr ta
     char* scope = NULL;
     int arraySize = 0;
 
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG CI] Alocando variavel: %s\n", varName);
-#endif
-
     /* Determine variable scope */
     symbol_item_ptr itemFunc = search_symbol_id(tabelaHash, varName);
 
@@ -520,11 +508,6 @@ void intermediate_code_decl_return(ast_node_ptr arvoreSintatica, symbol_item_ptr
     int hasReturnValue = 0;
     int returnReg = 0;
 
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG CI] Gerando retorno\n");
-#endif
-
     /* Check if function returns a value */
     if(arvoreSintatica->decl_type == DECL_RETURN_INT){
         create_intermediate_code(arvoreSintatica->children[0], tabelaHash, 1);
@@ -547,10 +530,6 @@ void intermediate_code_expr_op(ast_node_ptr arvoreSintatica, symbol_item_ptr tab
     int reg1, reg2;
 
     strcpy(NomeOp, arvoreSintatica->lexeme);
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG CI] Gerando operacao aritmetica: %s\n", NomeOp);
-#endif
 
     /* Generate code for left operand */
     create_intermediate_code(arvoreSintatica->children[0], tabelaHash, 1);
@@ -867,14 +846,7 @@ void intermediate_code_expr_assign(ast_node_ptr arvoreSintatica, symbol_item_ptr
 
     instrucaoAtrib = create_instruction("ASSIGN");
 
-
     create_intermediate_code(arvoreSintatica->children[0], tabelaHash, 1);
-    /*if(arvoreSintatica->children[0]->expr_type == EXPR_ARRAY){
-        create_intermediate_code(arvoreSintatica->children[0]->children[0], tabelaHash, 1);
-    }
-    else{
-        
-    }*/
     
     instrucaoAtrib->arg1 = create_address(ADDR_INT_CONST, num_reg, NULL, 1);
 

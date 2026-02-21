@@ -1,9 +1,6 @@
 #include "compiler.h"
 #include "parser.h"
 
-// Flag de debug (descomente para ativar logs detalhados)
-// #define DEBUG_COMPILER
-
 // Estrutura de configuração do compilador
 typedef struct {
     int debug;
@@ -207,14 +204,9 @@ int main(int argc, char *argv[]) {
     // Fase de síntese
     
     // Geração de CI
-#ifdef DEBUG_COMPILER
-    printf("[LOG] Iniciando geracao de codigo intermediario...\n");
-#endif
     initialize_vector();
     create_intermediate_code(syntax_tree, hash_table, 1);
-#ifdef DEBUG_COMPILER
-    printf("[LOG] Codigo intermediario gerado com sucesso (%d instrucoes)\n", array_index);
-#endif
+
     intermediate_code[array_index++] = create_instruction("HALT");
 
     if (config.debug) {
@@ -228,19 +220,13 @@ int main(int argc, char *argv[]) {
     free_analysis_structures(syntax_tree, hash_table);
 
     // Geração de código assembly
-#ifdef DEBUG_COMPILER
-    printf("[LOG] Iniciando geracao de codigo assembly...\n");
-#endif
     assembly();
-#ifdef DEBUG_COMPILER
-    printf("[LOG] Codigo assembly gerado com sucesso (%d instrucoes)\n", assembly_index);
-#endif
 
     if (config.debug) {
         print_assembly();
         fclose(output_assembly_file);
-        //print_memory();
-        //print_labels();
+        print_memory();
+        print_labels();
     } else {
         remove("output/codigo_assembly.txt");
     }
@@ -256,23 +242,17 @@ int main(int argc, char *argv[]) {
         }
     }
 
-#ifdef DEBUG_COMPILER
-    printf("[LOG] Iniciando geracao de codigo binario...\n");
-#endif
     binary(binary_output_file);
-#ifdef DEBUG_COMPILER
-    printf("[LOG] Codigo binario gerado com sucesso\n");
-#endif
+
     fclose(binary_output_file);
-    /*
+    
     if (config.debug) {
         FILE* arquivo_debug = fopen("output/debug.txt", "w");
         if (arquivo_debug != NULL) {
-            binario_debug(arquivo_debug);
+            binary_debug(arquivo_debug);
             fclose(arquivo_debug);
         }
     }
-    */
 
     free_synthesis_structures();
 

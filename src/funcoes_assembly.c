@@ -1,8 +1,5 @@
 #include "synthesis.h"
 
-// Flag de debug (descomente para ativar logs detalhados)
-// #define DEBUG_COMPILER
-
 /* Array of assembly instructions */
 assembly_t ** assembly_instructions = NULL;
 
@@ -33,23 +30,12 @@ void initialize_assembly() {
 
 
 assembly_t * create_assembly_node(instruction_type_t tipo, char *nome) {
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG create_assembly_node] Criando instrucao tipo=%d, nome='%s'\n", tipo, nome ? nome : "NULL");
-#endif
-    fflush(stdout);
     
     assembly_t * novoNoAssembly = (assembly_t *)malloc(sizeof(assembly_t));
     if (novoNoAssembly == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for assembly instruction\n");
         exit(EXIT_FAILURE);
     }
-    
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG create_assembly_node] assembly_t alocado com sucesso\n");
-#endif
-    fflush(stdout);
     
     novoNoAssembly->type = tipo;
 
@@ -94,35 +80,16 @@ assembly_t * create_assembly_node(instruction_type_t tipo, char *nome) {
             break;
         
         case INSTR_TYPE_LABEL:
-        
-#ifdef DEBUG_COMPILER
-    printf("[LOG create_assembly_node] Alocando label_type_t...\n");
-#endif
-            fflush(stdout);
             novoNoAssembly->type_label = (label_type_t *)malloc(sizeof(label_type_t));
             if (novoNoAssembly->type_label == NULL) {
                 fprintf(stderr, "Error: Failed to allocate Label-type instruction\n");
                 free(novoNoAssembly);
                 exit(EXIT_FAILURE);
             }
-        
-#ifdef DEBUG_COMPILER
-    printf("[LOG create_assembly_node] label_type_t alocado, atribuindo nome...\n");
-#endif
-            fflush(stdout);
+
             novoNoAssembly->type_label->name = nome;
-        
-#ifdef DEBUG_COMPILER
-    printf("[LOG create_assembly_node] Nome atribuido: '%s'\n", nome);
-#endif
-            fflush(stdout);
             novoNoAssembly->type_label->address = -1;
             novoNoAssembly->type_label->is_dynamic = -1;
-        
-#ifdef DEBUG_COMPILER
-    printf("[LOG create_assembly_node] INSTR_TYPE_LABEL criado com sucesso\n");
-#endif
-            fflush(stdout);
             break;
     }
 

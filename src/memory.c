@@ -263,7 +263,7 @@ void imprime_tipo(variable_t* var) {
 }
 
 
-void imprime_memoria() {
+void print_memory() {
     function_memory_t* currentFunc = memory_vector.funcs;
 
     for (int i = 0; i < memory_vector.size; i++, currentFunc = currentFunc->next) {
