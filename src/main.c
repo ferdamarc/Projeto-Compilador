@@ -146,6 +146,8 @@ int main(int argc, char *argv[]) {
     insert_symbol(hash_table, DECL_FUNC, TYPE_VOID, "set_interr_timer", "global", 0);
     insert_symbol(hash_table, DECL_FUNC, TYPE_INT,  "get_interr_type", "global", 0);
     insert_symbol(hash_table, DECL_FUNC, TYPE_VOID, "os_set_pc", "global", 0);
+    insert_symbol(hash_table, DECL_FUNC, TYPE_INT,  "keyboard_input", "global", 0);
+    insert_symbol(hash_table, DECL_FUNC, TYPE_VOID, "draw_pixel", "global", 0);
 
     // Análise semântica
     if (syntax_tree != NULL) {

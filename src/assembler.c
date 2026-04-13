@@ -698,6 +698,42 @@ void generate_assembly(instruction_t* instruction){
             assembly_instructions[assembly_index++] = new_instruction;
             return;
         }
+        // Instrução draw_pixel
+        else if(!strcmp(instruction->arg1->name, "draw_pixel")){
+            delete_temp(search_function(&memory_vector, "parametros"));
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "lw");
+            new_instruction->type_i->rt = $temp2;
+            new_instruction->type_i->rs = $pilha;
+            new_instruction->type_i->immediate = search_function(&memory_vector, "parametros")->size;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            delete_temp(search_function(&memory_vector, "parametros"));
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "lw");
+            new_instruction->type_i->rt = $temp;
+            new_instruction->type_i->rs = $pilha;
+            new_instruction->type_i->immediate = search_function(&memory_vector, "parametros")->size;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "draw_pixel");
+            new_instruction->type_i->rt = $temp2;
+            new_instruction->type_i->rs = $temp;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução keyboard_input
+        else if(!strcmp(instruction->arg1->name, "keyboard_input")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "keyboard_input");
+            new_instruction->type_i->rt = instruction->arg3->val; // Indica o valor do teclado
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+            
+            return;
+        }
 
         for(int i = instruction->arg2->val; i > 0; i--) {
             // Salva o valor do param no $temp para ser usado no output			
