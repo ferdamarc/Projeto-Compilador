@@ -1,0 +1,12 @@
+
+int main(void){
+    int out;
+
+    while(1){
+        out = keyboard_input();
+
+        output(out);
+    }
+
+    return 0;
+}
