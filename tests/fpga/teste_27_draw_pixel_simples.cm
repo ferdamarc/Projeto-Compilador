@@ -1,0 +1,44 @@
+int MAX_WIDTH;
+int MAX_HEIGHT;
+int NUM_MAX_COLORS;
+
+void init_global_vars(void){
+    MAX_HEIGHT = 480;
+    MAX_WIDTH = 640;
+    NUM_MAX_COLORS = 8;
+}
+
+int main(void){
+    int in; int x; int y;
+    int pixelcolor;
+
+    init_global_vars();
+
+    x = 0;
+    y = 0;
+    
+    pixelcolor = 1;
+    while(1){
+
+        if (pixelcolor > NUM_MAX_COLORS){
+            pixelcolor = 1;
+        }
+        if (x > MAX_WIDTH){
+            x = 0;
+        }
+        if (y > MAX_HEIGHT){
+            y = 0;
+        }
+
+        in = keyboard_input();
+        output(in);
+
+        draw_pixel(x, y, pixelcolor);
+
+        x = x + 1;
+        y = y + 1;
+        pixelcolor = pixelcolor + 1;
+    }
+
+    return 0;
+}
