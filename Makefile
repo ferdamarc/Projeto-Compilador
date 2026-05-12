@@ -240,6 +240,6 @@ all_rom: compiler relocate build_rom
 
 	@echo "----------"
 	@echo "Moving to Complete ROM Build from Directory of Quartus"
-# Fazer isso após pegar o diretório de onde o arquivo binário do Quartus está sendo executado
+	@cp $(ROM_OUTPUT_DIR)/$(ROM_OUTPUT_FILE) /mnt/c/Users/FERNANDO-PC/Workspace/Repositories/Projeto-Processador/$(ROM_OUTPUT_FILE)
 	@echo "Complete ROM Build Finished"
 
