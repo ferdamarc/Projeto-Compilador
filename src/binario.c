@@ -42,7 +42,7 @@ unsigned int get_opcode(char* nome, instruction_type_t tipo) {
     else if (strcmp(nome, "keyboard_input") == 0)   opcode = 0b010111;
 
     /* Draw Pixel Instruction */
-    else if (strcmp(nome, "draw_pixel") == 0)   opcode = 0b010110;
+    else if (strcmp(nome, "draw_pixel") == 0)   opcode = 0b001111;
 
     /* System Control */
     else if (strcmp(nome, "halt") == 0)  opcode = 0b111111;
