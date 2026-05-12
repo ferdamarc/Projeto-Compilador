@@ -38,7 +38,7 @@ static const struct file_order_entry g_file_order[] = {
     {"fatorial", 4},
     {"gcd", 5},
     {"media", 6},
-    {"menor", 7},
+    {"simple", 7},
     {"paridade", 8},
     {"potencia", 9},
     {"soma vetores", 10}
