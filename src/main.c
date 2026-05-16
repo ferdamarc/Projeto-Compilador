@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     // Parsing de argumentos da linha de comando
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "-D") == 0) {
-            config.debug = 0;
+            config.debug = 1;
         }
         else if (strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "-O") == 0) {
             if (i + 1 < argc) {
