@@ -148,6 +148,10 @@ void tipo_reg(int reg) {
             fprintf(output_assembly_file, "$temp");
             break;
         
+        case $temp2:
+            fprintf(output_assembly_file, "$temp2");
+            break;
+        
         case $pilha:
             fprintf(output_assembly_file, "$pilha");
             break;
