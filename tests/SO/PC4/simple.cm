@@ -1,3 +1,4 @@
+/*
 int main(void) {
     int pos;
     int color;
@@ -27,3 +28,66 @@ int main(void) {
 
     return 0;
 }
+*/
+
+int main(void) {
+    int key;
+    int color;
+    int pos;
+    int running;
+    int delay;
+    int debug;
+
+    key = 0;
+    color = 1;
+    pos = 0;
+    running = 1;
+    delay = 0;
+    debug = 1111;
+
+    while (running == 1) {
+        key = keyboard_input();
+
+        if (key > 0) {
+            output(key);
+
+            delay = 0;
+            while (delay < 300) {
+            delay = delay + 1;
+            }
+
+            output(pos);
+
+            delay = 0;
+            while (delay < 300) {
+            delay = delay + 1;
+            }
+
+            draw_pixel(pos, color);
+
+            delay = 0;
+            while (delay < 300) {
+            delay = delay + 1;
+            }
+
+            pos = pos + 1;
+            if (pos >= 1200) {
+                pos = 0;
+            }
+
+            color = color + 1;
+            if (color >= 8) {
+                color = 1;
+            }
+
+            output(debug);
+
+            delay = 0;
+            while (delay < 300) {
+            delay = delay + 1;
+            }
+        }
+    }
+
+    return 0;
+  }
