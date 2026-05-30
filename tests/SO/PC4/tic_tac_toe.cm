@@ -335,6 +335,32 @@ void ask_restart(void) {
 }
 
 /* ============================================================
+   Envia o resultado da partida ao Arduino (buzzer) via UART (TX).
+       winner == 1 -> envia 1 (P1 venceu)
+       winner == 2 -> envia 2 (P2 venceu)
+       caso contrário -> envia 3 (empate)
+   Espera a TX ficar livre antes de transmitir.
+   ============================================================ */
+
+void send_result(void) {
+    while (uart_tx_ready() == 0) {
+        no_op();
+    }
+
+    if (winner == 1) {
+        uart_send(1);
+    }
+    else {
+        if (winner == 2) {
+            uart_send(2);
+        }
+        else {
+            uart_send(3);
+        }
+    }
+}
+
+/* ============================================================
    Fluxo principal — laço externo de restart envolvendo o jogo
    ============================================================ */
 
@@ -393,6 +419,9 @@ int main(void) {
 
         /* Soa o resultado desenhando "I" / "II" / barra de empate */
         draw_winner_overlay();
+
+        /* Avisa o Arduino (buzzer) qual foi o resultado da partida */
+        send_result();
 
         /* Pergunta no LCD se reinicia */
         ask_restart();
