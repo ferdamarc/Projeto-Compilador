@@ -1,7 +1,8 @@
 #ifndef _SYNTHESIS_H_
 #define _SYNTHESIS_H_ 1
 
-#include "analysis.h"  /* Need AST and symbol table types */
+#include "analysis.h"      /* Need AST and symbol table types */
+#include "memory_layout.h" /* SO_INTERVAL, START_IM, PROGRAM_INTERVAL, MAX_PROGS, etc. */
 
 /*******************************************************************************
 * CONSTANTS FOR OS
@@ -11,22 +12,10 @@
 #define MAX_ASSEMBLY 10000            /* Maximum assembly instructions */
 #define MAX_CHAR_NOME 5               /* Maximum characters in mnemonic */
 #define SEGMENTATION_SIZE_DM 500      /* Data memory segmentation size */
-#define MEM_PARAM 1000                /* Base address for parameter memory */
 
-/* Memory Layout Constants */
+/* Stack/context constants derived from data-memory segmentation. */
 #define INIT_STACK_PARAMS    (SEGMENTATION_SIZE_DM-1)  /* Parameter stack start */
 #define INIT_CONTEXT_SWITCH  (INIT_STACK_PARAMS-32)    /* Context switch start */
-#define SO_INTERVAL 1000              /* SO reserved interval in ROM */
-#define START_IM 1000                 /* User programs start address in ROM */
-#define PROGRAM_INTERVAL 300          /* Space per user program (instructions) */
-#define MAX_PROGS 10                  /* Maximum user programs */
-#define SO_DATA_RESERVED 500          /* SO data reserved space (0..499) */
-#define START_DM 500                  /* First program data area start */
-#define PROG_INTERVAL_DM 500          /* Data space per program (words) */
-
-/* Memory Layout Macros */
-#define PROG_IM_BASE(N) (START_IM + (N - 1) * PROGRAM_INTERVAL)
-#define PROG_DM_BASE(N) (START_DM + (N - 1) * PROG_INTERVAL_DM)
 
 /* Register Definitions */
 #define $zero       31           /* Zero register (always 0) */

@@ -14,14 +14,21 @@ int PROG_INTERVAL_DM;
 int START_IM;
 int PROG_INTERVAL_IM;
 
-int data_memory_procs[11];
-int instruction_memory_procs[11];
+/* Tier complexo — slot único (ID = COMPLEX_PROG_ID) */
+int START_IM_COMPLEX;
+int PROG_INTERVAL_IM_COMPLEX;
+int START_DM_COMPLEX;
+int PROG_INTERVAL_DM_COMPLEX;
+int COMPLEX_PROG_ID;                /* = 11 (10 simples + 1 complexo) */
+
+int data_memory_procs[12];
+int instruction_memory_procs[12];
 
 /* Preemptive mode */
-int STATE_PROCESS[11];              /* 0 = null, 1 = ready, 2 = running, 3 = waiting, 4 = finished */
-int PROCESS_QUEUE[11];              /* Fila de processos */
-int PROC_PC_SALVO[11];              /* PC salvo de cada processo */
-int FIRST_EXECUTION_PROC[11];       /* Indica se é a primeira execução do processo */
+int STATE_PROCESS[12];              /* 0 = null, 1 = ready, 2 = running, 3 = waiting, 4 = finished */
+int PROCESS_QUEUE[12];              /* Fila de processos */
+int PROC_PC_SALVO[12];              /* PC salvo de cada processo */
+int FIRST_EXECUTION_PROC[12];       /* Indica se é a primeira execução do processo */
 int NUMBER_OF_PROCS;                /* Número de processos carregados */
 int ACTIVE_PROCESSES;               /* Número de processos ativos (não finalizados) */
 
@@ -30,21 +37,32 @@ void init_constants(void) {
     int i;
     CURRENT_PROCESS = 0;
 
-    START_DM = 500;          /* base do primeiro programa de usuário */
-    PROG_INTERVAL_DM = 500;  /* cada processo tem 500 palavras de dados */
+    /* Tier simples (IDs 1..10) */
+    START_DM = 500;
+    PROG_INTERVAL_DM = 500;
+    START_IM = 2000;            /* WAS 1000 — SO agora ocupa 0..1999 */
+    PROG_INTERVAL_IM = 300;
 
-    START_IM = 1000;         /* base do primeiro programa de usuário */
-    PROG_INTERVAL_IM = 300;  /* cada programa tem 300 instruções */
+    /* Tier complexo (ID 11) */
+    START_IM_COMPLEX         = 5000;   /* 2000 + 10*300 */
+    PROG_INTERVAL_IM_COMPLEX = 3192;   /* 8192 - 5000 */
+    START_DM_COMPLEX         = 5500;   /* 500  + 10*500 */
+    PROG_INTERVAL_DM_COMPLEX = 2692;   /* 8192 - 5500 */
+    COMPLEX_PROG_ID          = 11;
 
     data_memory_procs[0] = 0;
     instruction_memory_procs[0] = 0;
 
     i = 1;
     while (i <= 10) {
-        data_memory_procs[i] = (i-1) * PROG_INTERVAL_DM + START_DM;
-        instruction_memory_procs[i] = (i-1) * PROG_INTERVAL_IM + START_IM;
+        data_memory_procs[i]        = (i - 1) * PROG_INTERVAL_DM + START_DM;
+        instruction_memory_procs[i] = (i - 1) * PROG_INTERVAL_IM + START_IM;
         i = i + 1;
     }
+
+    /* Slot complexo (único) */
+    data_memory_procs[11]        = START_DM_COMPLEX;
+    instruction_memory_procs[11] = START_IM_COMPLEX;
 
     show_lcd(10);       /* Inicialização das variáveis SO */
 }
@@ -52,7 +70,7 @@ void init_constants(void) {
 void reset_process_flags(void) {
     int i;
     i = 0;
-    while (i <= 10) {
+    while (i <= 11) {
         STATE_PROCESS[i] = 0;
         PROC_PC_SALVO[i] = 0;
         PROCESS_QUEUE[i] = 0;
@@ -78,19 +96,35 @@ int clamp_prog_num(int v) {
     if (v < 1) {
         return 1;
     }
+    if (v > 11) {
+        return 11;
+    }
+    return v;
+}
+
+/* Restringe a faixa dos programas simples (1..10) — usado em PM e no modo S do NPM. */
+int clamp_simple_prog_num(int v) {
+    if (v < 1) {
+        return 1;
+    }
     if (v > 10) {
         return 10;
     }
     return v;
 }
 
-void non_preemp_choice(void){
+void non_preemp_choice_simples(void){
     int chosen_program;
 
-    show_lcd(3);        /* Escolha o programa (1-10) */
+    show_lcd(3);        /* Escolha o programa simples (1-10) */
 
     chosen_program = input();     /* lê dos switches */
-    CURRENT_PROCESS = clamp_prog_num(chosen_program);
+    CURRENT_PROCESS = clamp_simple_prog_num(chosen_program);
+}
+
+void non_preemp_choice_complexo(void){
+    /* Só há um programa complexo — ID fixo. */
+    CURRENT_PROCESS = COMPLEX_PROG_ID;
 }
 
 /* Versão simples de "rodar um programa" */
@@ -126,10 +160,10 @@ void run_non_preemptive_mode(int prog_num) {
 void how_many_processes(void){
     int choice;
 
-    show_lcd(11);        /* Quantos programas? */
+    show_lcd(11);        /* Quantos programas? (1-10, só tier simples no PM) */
     choice = input();
 
-    NUMBER_OF_PROCS = clamp_prog_num(choice);
+    NUMBER_OF_PROCS = clamp_simple_prog_num(choice);
 }
 
 int get_quantum_time(void){
@@ -274,7 +308,7 @@ void preemp_choice(void){
         show_lcd(12);        /* Escolha os IDs em ordem */
 
         choice = input();
-        num_process = clamp_prog_num(choice);
+        num_process = clamp_simple_prog_num(choice);
 
         /* Evita repetido: se já foi carregado, pede outro */
         if (STATE_PROCESS[num_process] == 0) {
@@ -292,6 +326,7 @@ void preemp_choice(void){
 void main(void) {
     int running_shell;
     int mode_choice;
+    int sc_choice;
 
     init_constants();
     reset_process_flags();
@@ -321,8 +356,22 @@ void main(void) {
         else if(mode_choice == 2){
             show_lcd(8);        /* Modo Não Preemptivo Escolhido */
 
-            non_preemp_choice();
-            run_non_preemptive_mode(CURRENT_PROCESS);
+            show_lcd(30);       /* Modo: 1-S 2-C */
+            sc_choice = input();
+
+            if (sc_choice == 1) {
+                show_lcd(31);   /* Modo S escolhido */
+                non_preemp_choice_simples();
+                run_non_preemptive_mode(CURRENT_PROCESS);
+            }
+            else if (sc_choice == 2) {
+                show_lcd(32);   /* Modo C escolhido */
+                non_preemp_choice_complexo();
+                run_non_preemptive_mode(CURRENT_PROCESS);
+            }
+            else {
+                show_lcd(29);   /* Escolha inválida */
+            }
         }
         else{
             show_lcd(29); /* Escolha inválida */
