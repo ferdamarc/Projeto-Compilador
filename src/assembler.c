@@ -764,6 +764,26 @@ void generate_assembly(instruction_t* instruction){
 
             return;
         }
+        // Instrução uart_rx_available: retorna 1 se há um byte recebido (não consumido).
+        else if(!strcmp(instruction->arg1->name, "uart_rx_available")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_rx_available");
+            new_instruction->type_i->rt = instruction->arg3->val; // Registrador que recebe o status
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução uart_receive: retorna o byte recebido pela UART (e o consome).
+        else if(!strcmp(instruction->arg1->name, "uart_receive")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_receive");
+            new_instruction->type_i->rt = instruction->arg3->val; // Registrador que recebe o byte
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
 
         for(int i = instruction->arg2->val; i > 0; i--) {
             // Salva o valor do param no $temp para ser usado no output			
