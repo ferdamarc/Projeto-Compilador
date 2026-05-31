@@ -335,14 +335,20 @@ void ask_restart(void) {
 }
 
 /* ============================================================
-   Envia o resultado da partida ao Arduino (buzzer) via UART (TX).
+   Envia o resultado da partida ao Arduino (buzzer) via UART (TX) e
+   aguarda o ACK de "fim de som" (RX) antes de continuar.
        winner == 1 -> envia 1 (P1 venceu)
        winner == 2 -> envia 2 (P2 venceu)
        caso contrário -> envia 3 (empate)
-   Espera a TX ficar livre antes de transmitir.
+   Fluxo:
+       1) espera a TX ficar livre e transmite o byte do resultado;
+       2) o Arduino toca a melodia e, ao terminar, devolve 1 byte (ACK);
+       3) a CPU fica em busy-wait até receber o ACK e só então prossegue.
    ============================================================ */
 
 void send_result(void) {
+    int ack;
+
     while (uart_tx_ready() == 0) {
         no_op();
     }
@@ -358,6 +364,12 @@ void send_result(void) {
             uart_send(3);
         }
     }
+
+    /* Aguarda o Arduino avisar que o som terminou antes de prosseguir */
+    while (uart_rx_available() == 0) {
+        no_op();
+    }
+    ack = uart_receive();
 }
 
 /* ============================================================
