@@ -48,6 +48,10 @@ unsigned int get_opcode(char* nome, instruction_type_t tipo) {
     else if (strcmp(nome, "uart_send") == 0)     opcode = 0b011000;
     else if (strcmp(nome, "uart_tx_ready") == 0) opcode = 0b011011;
 
+    /* UART Instructions (RX) */
+    else if (strcmp(nome, "uart_receive") == 0)      opcode = 0b011001;
+    else if (strcmp(nome, "uart_rx_available") == 0) opcode = 0b011010;
+
     /* System Control */
     else if (strcmp(nome, "halt") == 0)  opcode = 0b111111;
     
