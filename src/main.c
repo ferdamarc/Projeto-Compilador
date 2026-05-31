@@ -150,6 +150,8 @@ int main(int argc, char *argv[]) {
     insert_symbol(hash_table, DECL_FUNC, TYPE_VOID, "draw_pixel", "global", 0);
     insert_symbol(hash_table, DECL_FUNC, TYPE_VOID, "uart_send", "global", 0);
     insert_symbol(hash_table, DECL_FUNC, TYPE_INT,  "uart_tx_ready", "global", 0);
+    insert_symbol(hash_table, DECL_FUNC, TYPE_INT,  "uart_receive", "global", 0);
+    insert_symbol(hash_table, DECL_FUNC, TYPE_INT,  "uart_rx_available", "global", 0);
 
     // Análise semântica
     if (syntax_tree != NULL) {
