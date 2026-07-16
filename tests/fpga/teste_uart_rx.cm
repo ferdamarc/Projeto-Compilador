@@ -1,0 +1,36 @@
+/*
+    Teste isolado do caminho de RECEPÇÃO (RX) da UART (Arduino -> FPGA).
+
+    Espera um byte chegar pela UART e o mostra na saída (LEDs / 7-seg via
+    output). Fica em laço, então cada novo byte recebido aparece na saída —
+    permite validar o RX sozinho, sem depender do TX nem do jogo.
+
+    Como testar:
+      - Carregue um sketch no Arduino que envie bytes pela serial (9600 8N1)
+        para o pino RX do FPGA (uart_rx_pin = GPIO[1]). Ver
+        Projeto-Processador/arduino/uart_rx_test/.
+      - ATENÇÃO: a TX do Arduino é 5V; use divisor resistivo (1k+2k) ou level
+        shifter até o pino de 3,3V do FPGA. GND comum obrigatório.
+
+    Built-ins usados:
+      uart_rx_available()  -> 1 se há um byte recebido não consumido, senão 0
+      uart_receive()       -> retorna o byte recebido (e o consome)
+*/
+
+int main(void) {
+    int b;
+    int running;
+
+    running = 1;
+    while (running == 1) {
+        /* Espera (busy-wait) até chegar um byte */
+        while (uart_rx_available() == 0) {
+            no_op();
+        }
+
+        b = uart_receive();
+        output(b);          /* mostra o byte recebido na saída */
+    }
+
+    return 0;
+}

@@ -734,6 +734,56 @@ void generate_assembly(instruction_t* instruction){
             
             return;
         }
+        // Instrução uart_send: envia 1 byte pela UART (FPGA -> Arduino).
+        // Segue o padrão do "output": carrega o parâmetro em $temp e o transmite.
+        // No hardware, o byte enviado vem de rs (br_dado1[7:0]).
+        else if(!strcmp(instruction->arg1->name, "uart_send")){
+            delete_temp(search_function(&memory_vector, "parametros")); // Apaga o temporario usado na chamada
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "lw");
+            new_instruction->type_i->rt = $temp;
+            new_instruction->type_i->rs = $pilha;
+            new_instruction->type_i->immediate = search_function(&memory_vector, "parametros")->size;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_send");
+            new_instruction->type_i->rs = $temp;  // byte a transmitir
+            new_instruction->type_i->rt = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução uart_tx_ready: retorna 1 se a TX da UART está livre.
+        else if(!strcmp(instruction->arg1->name, "uart_tx_ready")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_tx_ready");
+            new_instruction->type_i->rt = instruction->arg3->val; // Registrador que recebe o status
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução uart_rx_available: retorna 1 se há um byte recebido (não consumido).
+        else if(!strcmp(instruction->arg1->name, "uart_rx_available")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_rx_available");
+            new_instruction->type_i->rt = instruction->arg3->val; // Registrador que recebe o status
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução uart_receive: retorna o byte recebido pela UART (e o consome).
+        else if(!strcmp(instruction->arg1->name, "uart_receive")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_receive");
+            new_instruction->type_i->rt = instruction->arg3->val; // Registrador que recebe o byte
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
 
         for(int i = instruction->arg2->val; i > 0; i--) {
             // Salva o valor do param no $temp para ser usado no output			

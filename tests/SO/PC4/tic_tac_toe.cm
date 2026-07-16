@@ -335,6 +335,44 @@ void ask_restart(void) {
 }
 
 /* ============================================================
+   Envia o resultado da partida ao Arduino (buzzer) via UART (TX) e
+   aguarda o ACK de "fim de som" (RX) antes de continuar.
+       winner == 1 -> envia 1 (P1 venceu)
+       winner == 2 -> envia 2 (P2 venceu)
+       caso contrário -> envia 3 (empate)
+   Fluxo:
+       1) espera a TX ficar livre e transmite o byte do resultado;
+       2) o Arduino toca a melodia e, ao terminar, devolve 1 byte (ACK);
+       3) a CPU fica em busy-wait até receber o ACK e só então prossegue.
+   ============================================================ */
+
+void send_result(void) {
+    int ack;
+
+    while (uart_tx_ready() == 0) {
+        no_op();
+    }
+
+    if (winner == 1) {
+        uart_send(1);
+    }
+    else {
+        if (winner == 2) {
+            uart_send(2);
+        }
+        else {
+            uart_send(3);
+        }
+    }
+
+    /* Aguarda o Arduino avisar que o som terminou antes de prosseguir */
+    while (uart_rx_available() == 0) {
+        no_op();
+    }
+    ack = uart_receive();
+}
+
+/* ============================================================
    Fluxo principal — laço externo de restart envolvendo o jogo
    ============================================================ */
 
@@ -343,12 +381,16 @@ int main(void) {
 
     init_constants();
 
-    /* Tela inicial: gridlines (placar começa vazio, BRAM já é zero ao boot). */
-    draw_grid();
-
     outer_running = 1;
     while (outer_running == 1) {
         init_game_state();
+
+        /* Toda partida começa com o tabuleiro limpo (o placar y=0..8 fica).
+           Limpa y=10..59 e redesenha o grid — assim uma rodada nunca herda as
+           marcações da anterior. No 1º boot a BRAM já é zero, então limpar aqui
+           é inofensivo e garante consistência em qualquer caminho. */
+        clear_area(10, 60);
+        draw_grid();
 
         /* Laço de uma partida (espelha o schematic) */
         while (game_over == 0) {
@@ -394,15 +436,15 @@ int main(void) {
         /* Soa o resultado desenhando "I" / "II" / barra de empate */
         draw_winner_overlay();
 
+        /* Avisa o Arduino (buzzer) qual foi o resultado da partida */
+        send_result();
+
         /* Pergunta no LCD se reinicia */
         ask_restart();
 
-        if (restart == 1) {
-            /* Limpa só o tabuleiro (o placar fica) e redesenha o grid */
-            clear_area(10, 60);
-            draw_grid();
-        }
-        else {
+        /* O tabuleiro será limpo no topo do laço (clear_area + draw_grid).
+           Se o jogador não quis reiniciar, encerra o laço externo. */
+        if (restart == 0) {
             outer_running = 0;
         }
     }
