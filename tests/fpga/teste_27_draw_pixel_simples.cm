@@ -1,0 +1,29 @@
+int main(void) {
+    int pos;
+    int color;
+    int delay;
+    int running;
+
+    pos = 0;
+    color = 1;
+    running = 1;
+    delay = 0;
+
+    while (running == 1) {
+        draw_pixel(pos, color);
+
+        delay = 0;
+        while (delay < 300) {
+            delay = delay + 1;
+        }
+
+        pos = pos + 1;
+
+        if (pos >= 1200) {
+            pos = 0;
+            color = color + 1;
+        }
+    }
+
+    return 0;
+}

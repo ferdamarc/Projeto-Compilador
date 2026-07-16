@@ -25,31 +25,40 @@
 #define MAX_FILES MAX_PROGS
 #define MAX_LINE 256
 
+#define TIER_SIMPLE  0U
+#define TIER_COMPLEX 1U
+
 struct file_order_entry {
     const char *name;
-    unsigned order;
+    unsigned order;     /* posição dentro do tier (1-based) */
+    unsigned tier;      /* TIER_SIMPLE ou TIER_COMPLEX */
 };
 
 
 static const struct file_order_entry g_file_order[] = {
-    {"area", 1},
-    {"contagem regressiva", 2},
-    {"fibonacci", 3},
-    {"fatorial", 4},
-    {"gcd", 5},
-    {"media", 6},
-    {"menor", 7},
-    {"paridade", 8},
-    {"potencia", 9},
-    {"soma vetores", 10}
+    /* Tier simples — slot de 300 inst, base START_IM (2000) */
+    {"area",                1, TIER_SIMPLE},
+    {"contagem regressiva", 2, TIER_SIMPLE},
+    {"fibonacci",           3, TIER_SIMPLE},
+    {"fatorial",            4, TIER_SIMPLE},
+    {"gcd",                 5, TIER_SIMPLE},
+    {"media",               6, TIER_SIMPLE},
+    {"simple",              7, TIER_SIMPLE},
+    {"paridade",            8, TIER_SIMPLE},
+    {"potencia",            9, TIER_SIMPLE},
+    {"soma vetores",       10, TIER_SIMPLE},
+
+    /* Tier complexo — slot único de PROGRAM_INTERVAL_COMPLEX inst, base START_IM_COMPLEX (5000) */
+    {"tic tac toe",         1, TIER_COMPLEX}
 };
 
 struct file_entry {
     char name[260];
     unsigned order;
+    unsigned tier;
 };
 
-static int get_order(const char *filename, unsigned *order_out) {
+static int get_order(const char *filename, unsigned *order_out, unsigned *tier_out) {
     static char normalized[260];
     size_t src = 0U;
     size_t dst = 0U;
@@ -73,6 +82,7 @@ static int get_order(const char *filename, unsigned *order_out) {
     for (size_t i = 0U; i < sizeof(g_file_order) / sizeof(g_file_order[0]); ++i) {
         if (strcmp(normalized, g_file_order[i].name) == 0) {
             *order_out = g_file_order[i].order;
+            *tier_out  = g_file_order[i].tier;
             return 1;
         }
     }
@@ -82,11 +92,11 @@ static int get_order(const char *filename, unsigned *order_out) {
 static int compare_entries(const void *a, const void *b) {
     const struct file_entry *fa = (const struct file_entry *)a;
     const struct file_entry *fb = (const struct file_entry *)b;
-    if (fa->order < fb->order) {
-        return -1;
+    if (fa->tier != fb->tier) {
+        return (fa->tier < fb->tier) ? -1 : 1;
     }
-    if (fa->order > fb->order) {
-        return 1;
+    if (fa->order != fb->order) {
+        return (fa->order < fb->order) ? -1 : 1;
     }
     return strcmp(fa->name, fb->name);
 }
@@ -198,7 +208,8 @@ int main(int argc, char **argv) {
         }
 
         unsigned order = 0U;
-        if (!get_order(fname, &order)) {
+        unsigned tier  = 0U;
+        if (!get_order(fname, &order, &tier)) {
             continue;
         }
 
@@ -218,6 +229,7 @@ int main(int argc, char **argv) {
         strncpy(files[file_count].name, fname, sizeof(files[file_count].name) - 1U);
         files[file_count].name[sizeof(files[file_count].name) - 1U] = '\0';
         files[file_count].order = order;
+        files[file_count].tier  = tier;
         file_count++;
     }
     closedir(dir);
@@ -254,11 +266,16 @@ int main(int argc, char **argv) {
         line_count++;
     }
 
+    /* --- Tier simples: MAX_PROGS_SIMPLE slots, cada um com PROGRAM_INTERVAL --- */
+    unsigned simple_slots_filled = 0U;
     for (size_t idx = 0U; idx < file_count; ++idx) {
         const struct file_entry *entry = &files[idx];
+        if (entry->tier != TIER_SIMPLE) {
+            continue;
+        }
         char path[512];
         build_path(input_dir, entry->name, path, sizeof(path));
-        printf("Concatenando arquivo: %s...\n", entry->name);
+        printf("Concatenando (simples) arquivo: %s...\n", entry->name);
 
         FILE *fin = fopen(path, "r");
         if (!fin) {
@@ -268,7 +285,6 @@ int main(int argc, char **argv) {
         }
 
         unsigned written = 0U;
-
         while (fgets(line, sizeof(line), fin)) {
             trim(line);
             if (line[0] == '\0') {
@@ -279,10 +295,77 @@ int main(int argc, char **argv) {
         }
         fclose(fin);
 
+        if (written > PROGRAM_INTERVAL) {
+            fprintf(stderr, "Programa simples '%s' tem %u inst, excede limite %u.\n",
+                    entry->name, written, PROGRAM_INTERVAL);
+            fclose(fout);
+            return EXIT_FAILURE;
+        }
         while (written < PROGRAM_INTERVAL) {
             fprintf(fout, "%s\n", NOP_OPCODE);
             written++;
         }
+        simple_slots_filled++;
+    }
+    /* Preenche slots simples vazios com NOPs para manter offsets fixos */
+    while (simple_slots_filled < MAX_PROGS_SIMPLE) {
+        for (unsigned i = 0U; i < PROGRAM_INTERVAL; ++i) {
+            fprintf(fout, "%s\n", NOP_OPCODE);
+        }
+        simple_slots_filled++;
+    }
+
+    /* --- Tier complexo: MAX_PROGS_COMPLEX slots, cada um com PROGRAM_INTERVAL_COMPLEX --- */
+    unsigned complex_slots_filled = 0U;
+    for (size_t idx = 0U; idx < file_count; ++idx) {
+        const struct file_entry *entry = &files[idx];
+        if (entry->tier != TIER_COMPLEX) {
+            continue;
+        }
+        if (complex_slots_filled >= MAX_PROGS_COMPLEX) {
+            fprintf(stderr, "Mais programas complexos que MAX_PROGS_COMPLEX (%d) — '%s' descartado.\n",
+                    MAX_PROGS_COMPLEX, entry->name);
+            break;
+        }
+        char path[512];
+        build_path(input_dir, entry->name, path, sizeof(path));
+        printf("Concatenando (complexo) arquivo: %s...\n", entry->name);
+
+        FILE *fin = fopen(path, "r");
+        if (!fin) {
+            fprintf(stderr, "Nao foi possivel abrir '%s'.\n", path);
+            fclose(fout);
+            return EXIT_FAILURE;
+        }
+
+        unsigned written = 0U;
+        while (fgets(line, sizeof(line), fin)) {
+            trim(line);
+            if (line[0] == '\0') {
+                continue;
+            }
+            fprintf(fout, "%s\n", line);
+            written++;
+        }
+        fclose(fin);
+
+        if (written > PROGRAM_INTERVAL_COMPLEX) {
+            fprintf(stderr, "Programa complexo '%s' tem %u inst, excede limite %u.\n",
+                    entry->name, written, PROGRAM_INTERVAL_COMPLEX);
+            fclose(fout);
+            return EXIT_FAILURE;
+        }
+        while (written < PROGRAM_INTERVAL_COMPLEX) {
+            fprintf(fout, "%s\n", NOP_OPCODE);
+            written++;
+        }
+        complex_slots_filled++;
+    }
+    while (complex_slots_filled < MAX_PROGS_COMPLEX) {
+        for (unsigned i = 0U; i < PROGRAM_INTERVAL_COMPLEX; ++i) {
+            fprintf(fout, "%s\n", NOP_OPCODE);
+        }
+        complex_slots_filled++;
     }
 
     fclose(fout);

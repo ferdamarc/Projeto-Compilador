@@ -90,7 +90,7 @@ test: compiler
 	@log_file_name=$$(basename "$(file)").log; \
 	log_file_path=$(OUTPUT_DIR)/logs/$$log_file_name; \
 	echo "Attempting to save log to: $$log_file_path\n"; \
-	./compiler "$(file)" -ca -ci -v > "$$log_file_path"; \
+	./compiler "$(file)" > "$$log_file_path"; \
 	if [ $$? -eq 0 ]; then \
 		echo "Test output for $(file) saved to $$log_file_path\n"; \
 	else \
@@ -240,6 +240,6 @@ all_rom: compiler relocate build_rom
 
 	@echo "----------"
 	@echo "Moving to Complete ROM Build from Directory of Quartus"
-# Fazer isso após pegar o diretório de onde o arquivo binário do Quartus está sendo executado
+	@cp $(ROM_OUTPUT_DIR)/$(ROM_OUTPUT_FILE) /mnt/c/Users/FERNANDO-PC/Workspace/Repositories/Projeto-Processador/$(ROM_OUTPUT_FILE)
 	@echo "Complete ROM Build Finished"
 

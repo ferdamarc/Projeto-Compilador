@@ -132,16 +132,17 @@ int discard_register(){
     register_list[discarded_reg].last_use = 0;
     total_reg_in_use--;
     
-
-    //if(DEBUG_MODE){
-    //    if(register_list[discarded_reg].var_name == temp_string) {
-    //        fprintf(stderr, ANSI_COLOR_PURPLE "LRU DESCARTE: " ANSI_COLOR_RESET "Registrador t%d (TEMPORARIO, last_use:%d) descartado\n", 
-    //                discarded_reg, lowest_last_use);
-    //    } else {
-    //        fprintf(stderr, ANSI_COLOR_PURPLE "LRU DESCARTE: " ANSI_COLOR_RESET "Registrador t%d (VARIAVEL '%s', last_use:%d) descartado\n", 
-    //                discarded_reg, register_list[discarded_reg].var_name ? register_list[discarded_reg].var_name : "NULL", lowest_last_use);
-    //    }
-    //}
+    /*
+    if(DEBUG_MODE){
+       if(register_list[discarded_reg].var_name == temp_string) {
+           fprintf(stderr, ANSI_COLOR_PURPLE "LRU DESCARTE: " ANSI_COLOR_RESET "Registrador t%d (TEMPORARIO, last_use:%d) descartado\n", 
+                   discarded_reg, lowest_last_use);
+       } else {
+           fprintf(stderr, ANSI_COLOR_PURPLE "LRU DESCARTE: " ANSI_COLOR_RESET "Registrador t%d (VARIAVEL '%s', last_use:%d) descartado\n", 
+                   discarded_reg, register_list[discarded_reg].var_name ? register_list[discarded_reg].var_name : "NULL", lowest_last_use);
+       }
+    }
+    */
     
     return discarded_reg;
 }

@@ -1,8 +1,5 @@
 #include "synthesis.h"
 
-// Flag de debug (descomente para ativar logs detalhados)
-// #define DEBUG_COMPILER
-
 memory_t memory_vector;                /* Global memory management structure */
 function_memory_t *current_func = NULL; /* Pointer to current function */
 
@@ -47,55 +44,20 @@ void assembly() {
     initialize_assembly();
 
 
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] Iniciando conversao para assembly...\n");
-#endif
-
     /* Create initial jump to main function */
     assembly_t *jumpMain = create_j_instruction("j", "main");
     add_assembly_instruction(jumpMain);
 
     /* Process all intermediate code instructions */
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] Processando %d instrucoes intermediarias...\n", array_index);
-#endif
     for (int i = 0; i < array_index; i++) {
-        if (i % 50 == 0 && i > 0) {
-        
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] Processando instruction %d/%d\n", i, array_index);
-#endif
-        }
-        if (intermediate_code[i] != NULL && intermediate_code[i]->op != NULL) {
-        
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] [%d/%d] Processando: %s\n", i+1, array_index, intermediate_code[i]->op);
-#endif
-            fflush(stdout);
-        }
         generate_assembly(intermediate_code[i]);
     }
 
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] Conversao concluida. Total: %d instrucoes assembly\n", assembly_index);
-#endif
 }
 
 int opRelacionais(instruction_t* instruction, assembly_t** new_instruction) {
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG] opRelacionais: inicio (op=%s)\n", instruction->op);
-#endif
-    fflush(stdout);
-    
     /* Verify arguments before accessing */
     if (instruction->arg1 == NULL || instruction->arg2 == NULL || instruction->arg3 == NULL) {
-    
-#ifdef DEBUG_COMPILER
-    printf("[LOG] opRelacionais: argumentos insuficientes, retornando 0\n");
-#endif
-        fflush(stdout);
         return 0;
     }
     
@@ -150,19 +112,8 @@ int opRelacionais(instruction_t* instruction, assembly_t** new_instruction) {
 }
 
 int opAritmeticos(instruction_t* instruction, assembly_t** new_instruction){
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG] opAritmeticos: inicio (op=%s)\n", instruction->op);
-#endif
-    fflush(stdout);
-    
     /* Verify arguments before accessing */
     if (instruction->arg1 == NULL || instruction->arg2 == NULL || instruction->arg3 == NULL) {
-    
-#ifdef DEBUG_COMPILER
-    printf("[LOG] opAritmeticos: argumentos insuficientes, retornando 0\n");
-#endif
-        fflush(stdout);
         return 0;
     }
     
@@ -208,63 +159,26 @@ void generate_assembly(instruction_t* instruction){
         fprintf(stderr, "[ERRO assembly_t] Instrucao NULL recebida\n");
         return;
     }
-    
+
     if (instruction->op == NULL) {
         fprintf(stderr, "[ERRO assembly_t] Operacao NULL na instruction\n");
         return;
     }
 
-    // Log periódico para rastrear progresso
-    static int contador = 0;
-    if (contador % 100 == 0) {
-    
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] Gerando: %s (instruction %d)\n", instruction->op, contador);
-#endif
-    }
-    contador++;
-
     if(opAritmeticos(instruction, &new_instruction)){
-    
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] opAritmeticos retornou TRUE\n");
-#endif
-        fflush(stdout);
         assembly_instructions[assembly_index++] = new_instruction;
     }
     else if(opRelacionais(instruction, &new_instruction)){
-    
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] opRelacionais retornou TRUE\n");
-#endif
-        fflush(stdout);
         assembly_instructions[assembly_index++] = new_instruction;
     }
-    else if(!strcmp(instruction->op, "ASSIGN")){
-    
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] Entrou no bloco ASSIGN\n");
-#endif
-        fflush(stdout);
-        
+    else if(!strcmp(instruction->op, "ASSIGN")){        
         if (instruction->arg1 == NULL || instruction->arg2 == NULL) {
             fprintf(stderr, "[ERRO assembly_t] ASSIGN com argumentos NULL\n");
             return;
         }
-        
-    
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] ASSIGN: arg1->val=%d, arg2->val=%d\n", instruction->arg1->val, instruction->arg2->val);
-#endif
-        fflush(stdout);
-        
+
         new_instruction = create_r_instruction("add", instruction->arg1->val, $zero, instruction->arg2->val);
         assembly_instructions[assembly_index++] = new_instruction;
-    
-#ifdef DEBUG_COMPILER
-    printf("[LOG assembly_t] ASSIGN processado com sucesso\n");
-#endif
-        fflush(stdout);
     }
     else if(!strcmp(instruction->op, "LOADI")){
         int aux_register = $zero;
@@ -373,8 +287,6 @@ void generate_assembly(instruction_t* instruction){
         assembly_instructions[assembly_index++] = new_instruction;
         current_func = insert_function(&memory_vector, instruction->arg2->name);
     
-        /* vídeo */
-    
         if(!strcmp(instruction->arg2->name, "main")){
             /* Carrega os registradores $fp e $sp com seus valores iniciais */
             new_instruction = create_assembly_node(INSTR_TYPE_I, "ori");
@@ -382,7 +294,6 @@ void generate_assembly(instruction_t* instruction){
             new_instruction->type_i->rs = $zero;
             new_instruction->type_i->immediate = search_function(&memory_vector, "global")->size + get_fp(current_func);
             assembly_instructions[assembly_index++] = new_instruction;
-            //printf("fp: %d\n", new_instruction->type_i->immediate);
 
             new_instruction = create_assembly_node(INSTR_TYPE_R, "add");
             new_instruction->type_r->rd = $fp;
@@ -421,7 +332,6 @@ void generate_assembly(instruction_t* instruction){
             new_instruction->type_i->immediate = INIT_STACK_PARAMS; // valor 499
             assembly_instructions[assembly_index++] = new_instruction;
         }
-        /* vídeo */
         else{
             // Guarda o valor de controle para a funcao anterior
             new_instruction = create_assembly_node(INSTR_TYPE_I, "sw");
@@ -525,7 +435,7 @@ void generate_assembly(instruction_t* instruction){
                 new_instruction->type_i->rs = $temp;
                 new_instruction->type_i->immediate = 0;
                 assembly_instructions[assembly_index++] = new_instruction;
-            } /* Continua ... */
+            }
             else{
                 // Vetor passado como parametro
                 new_instruction = create_assembly_node(INSTR_TYPE_I, "lw");
@@ -591,7 +501,7 @@ void generate_assembly(instruction_t* instruction){
             else{
                 new_instruction = create_assembly_node(INSTR_TYPE_I, "lw");
                 new_instruction->type_i->rt = $temp;
-                new_instruction->type_i->rs = (var->is_global) ? $s0 : $fp; // Provavelmente nao vai ser preciso verificar aqui
+                new_instruction->type_i->rs = (var->is_global) ? $s0 : $fp;
                 new_instruction->type_i->immediate = get_fp_relation(current_func, var);
                 assembly_instructions[assembly_index++] = new_instruction;
 
@@ -627,8 +537,6 @@ void generate_assembly(instruction_t* instruction){
         new_instruction->type_j->label_immediate = strdup("$zero");
         assembly_instructions[assembly_index++] = new_instruction;
     }
-
-    /* vídeo */
     else if(!strcmp(instruction->op, "DISP_VAR")){
         // Modo 1: Escreve o valor de um registrador
         new_instruction = create_assembly_node(INSTR_TYPE_I, "disp");
@@ -737,7 +645,6 @@ void generate_assembly(instruction_t* instruction){
         new_instruction->type_r->rt = $zero;
         assembly_instructions[assembly_index++] = new_instruction;
     }
-    /* vídeo */
     else if(!strcmp(instruction->op, "CALL")){
         if(!instruction->arg3){
             printf(ANSI_COLOR_RED "Erro: " ANSI_COLOR_RESET);
@@ -773,8 +680,6 @@ void generate_assembly(instruction_t* instruction){
             assembly_instructions[assembly_index++] = new_instruction;
             return; // Nao precisa fazer mais nada
         }
-
-        /* vídeo */
         else if(!strcmp(instruction->arg1->name, "get_pc")){
             // Coloca o valor do PC no registrador passado como argumento
             new_instruction = create_assembly_node(INSTR_TYPE_I, "get_pc");
@@ -793,8 +698,92 @@ void generate_assembly(instruction_t* instruction){
             assembly_instructions[assembly_index++] = new_instruction;
             return;
         }
+        // Instrução draw_pixel
+        else if(!strcmp(instruction->arg1->name, "draw_pixel")){
+            delete_temp(search_function(&memory_vector, "parametros"));
 
-        /* vídeo */
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "lw");
+            new_instruction->type_i->rt = $temp2;
+            new_instruction->type_i->rs = $pilha;
+            new_instruction->type_i->immediate = search_function(&memory_vector, "parametros")->size;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            delete_temp(search_function(&memory_vector, "parametros"));
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "lw");
+            new_instruction->type_i->rt = $temp;
+            new_instruction->type_i->rs = $pilha;
+            new_instruction->type_i->immediate = search_function(&memory_vector, "parametros")->size;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "draw_pixel");
+            new_instruction->type_i->rt = $temp2;
+            new_instruction->type_i->rs = $temp;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução keyboard_input
+        else if(!strcmp(instruction->arg1->name, "keyboard_input")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "keyboard_input");
+            new_instruction->type_i->rt = instruction->arg3->val; // Indica o valor do teclado
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+            
+            return;
+        }
+        // Instrução uart_send: envia 1 byte pela UART (FPGA -> Arduino).
+        // Segue o padrão do "output": carrega o parâmetro em $temp e o transmite.
+        // No hardware, o byte enviado vem de rs (br_dado1[7:0]).
+        else if(!strcmp(instruction->arg1->name, "uart_send")){
+            delete_temp(search_function(&memory_vector, "parametros")); // Apaga o temporario usado na chamada
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "lw");
+            new_instruction->type_i->rt = $temp;
+            new_instruction->type_i->rs = $pilha;
+            new_instruction->type_i->immediate = search_function(&memory_vector, "parametros")->size;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_send");
+            new_instruction->type_i->rs = $temp;  // byte a transmitir
+            new_instruction->type_i->rt = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução uart_tx_ready: retorna 1 se a TX da UART está livre.
+        else if(!strcmp(instruction->arg1->name, "uart_tx_ready")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_tx_ready");
+            new_instruction->type_i->rt = instruction->arg3->val; // Registrador que recebe o status
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução uart_rx_available: retorna 1 se há um byte recebido (não consumido).
+        else if(!strcmp(instruction->arg1->name, "uart_rx_available")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_rx_available");
+            new_instruction->type_i->rt = instruction->arg3->val; // Registrador que recebe o status
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
+        // Instrução uart_receive: retorna o byte recebido pela UART (e o consome).
+        else if(!strcmp(instruction->arg1->name, "uart_receive")){
+            new_instruction = create_assembly_node(INSTR_TYPE_I, "uart_receive");
+            new_instruction->type_i->rt = instruction->arg3->val; // Registrador que recebe o byte
+            new_instruction->type_i->rs = $zero;
+            new_instruction->type_i->immediate = 0;
+            assembly_instructions[assembly_index++] = new_instruction;
+
+            return;
+        }
 
         for(int i = instruction->arg2->val; i > 0; i--) {
             // Salva o valor do param no $temp para ser usado no output			
@@ -805,13 +794,6 @@ void generate_assembly(instruction_t* instruction){
             new_instruction->type_i->rs = $pilha;
             new_instruction->type_i->immediate = search_function(&memory_vector, "parametros")->size;
             assembly_instructions[assembly_index++] = new_instruction;
-
-            /*
-            new_instruction = create_assembly_node(INSTR_TYPE_I, "out");
-            new_instruction->type_i->rs = $temp;
-            new_instruction->type_i->rt = $zero;
-            new_instruction->type_i->immediate = 0;
-            assembly_instructions[assembly_index++] = new_instruction; */
 
             new_instruction = create_assembly_node(INSTR_TYPE_I, "sw");
             new_instruction->type_i->rs = $sp;

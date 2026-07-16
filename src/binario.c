@@ -1,9 +1,5 @@
 #include "synthesis.h"
 
-// Flag de debug (descomente para ativar logs detalhados)
-// #define DEBUG_COMPILER
-
-
 unsigned int get_opcode(char* nome, instruction_type_t tipo) {
     int opcode = -1;
 
@@ -41,7 +37,21 @@ unsigned int get_opcode(char* nome, instruction_type_t tipo) {
     else if (strcmp(nome, "get_pc") == 0)           opcode = 0b010100;
     else if (strcmp(nome, "set_interr_timer") == 0) opcode = 0b010101;
     else if (strcmp(nome, "get_interr_type") == 0)  opcode = 0b010110;
-    
+
+    /* Keyboard Input Instruction */
+    else if (strcmp(nome, "keyboard_input") == 0)   opcode = 0b010111;
+
+    /* Draw Pixel Instruction */
+    else if (strcmp(nome, "draw_pixel") == 0)   opcode = 0b001111;
+
+    /* UART Instructions (TX) */
+    else if (strcmp(nome, "uart_send") == 0)     opcode = 0b011000;
+    else if (strcmp(nome, "uart_tx_ready") == 0) opcode = 0b011011;
+
+    /* UART Instructions (RX) */
+    else if (strcmp(nome, "uart_receive") == 0)      opcode = 0b011001;
+    else if (strcmp(nome, "uart_rx_available") == 0) opcode = 0b011010;
+
     /* System Control */
     else if (strcmp(nome, "halt") == 0)  opcode = 0b111111;
     
@@ -186,19 +196,7 @@ void binary(FILE* arquivo) {
     binary_j_t* binJ;
     binary_r_t* binR;
     
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG BINARIO] Iniciando conversao de %d instrucoes assembly para binario...\n", assembly_index);
-#endif
-    
     for (int i = 0; i < assembly_index; i++) {
-        if (i % 100 == 0 && i > 0) {
-        
-#ifdef DEBUG_COMPILER
-    printf("[LOG BINARIO] Processando instruction %d/%d\n", i, assembly_index);
-#endif
-        }
-        
         if (assembly_instructions[i] == NULL) {
             fprintf(stderr, "[ERRO BINARIO] Instrucao NULL no indice %d\n", i);
             continue;
@@ -232,15 +230,10 @@ void binary(FILE* arquivo) {
         }
         fprintf(arquivo, "\n");
     }
-    
-
-#ifdef DEBUG_COMPILER
-    printf("[LOG BINARIO] Conversao concluida com sucesso\n");
-#endif
 }
 
 
-void binario_debug(FILE* arquivo) {
+void binary_debug(FILE* arquivo) {
     binary_i_t* binI;
     binary_j_t* binJ;
     binary_r_t* binR;

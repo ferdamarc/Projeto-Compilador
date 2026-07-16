@@ -1,0 +1,23 @@
+/* Teste do caminho TX da UART (FPGA -> Arduino).
+ * Envia o codigo do vencedor pela serial. No Arduino, um byte:
+ *   1 -> jogador 1 venceu
+ *   2 -> jogador 2 venceu
+ *   3 -> empate
+ * Espera a TX ficar livre antes de cada envio (uso correto de uart_tx_ready).
+ */
+
+void enviar_byte(int b)
+{
+    while (uart_tx_ready() == 0) {
+        no_op();
+    }
+    uart_send(b);
+}
+
+void main(void)
+{
+    int vencedor;
+
+    vencedor = 1;            /* exemplo: jogador 1 venceu */
+    enviar_byte(vencedor);
+}

@@ -1,0 +1,7 @@
+# Diretorio de build
+build/
+
+# Diretorio de output
+output/
+
+# Arquivos de log

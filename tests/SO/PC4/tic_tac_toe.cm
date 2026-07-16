@@ -1,0 +1,454 @@
+/*
+    Jogo da velha — segue schematic_tic_tac_toe.png, com extensões:
+      - placar persistente na tela (vitórias do P1, do P2 e empates),
+      - símbolo de vencedor desenhado na tela ("I" = P1, "II" = P2),
+      - laço de reinício controlado pelo LCD ("Reiniciar? 1=Sim 2=Nao").
+
+    Controles (NumLock ligado para Player 2):
+
+        Player 1 — letras       Player 2 — numpad
+        ┌─┬─┬─┐                 ┌─┬─┬─┐
+        │Q│W│E│  → 0 1 2        │7│8│9│  → 0 1 2
+        ├─┼─┼─┤                 ├─┼─┼─┤
+        │A│S│D│  → 3 4 5        │4│5│6│  → 3 4 5
+        ├─┼─┼─┤                 ├─┼─┼─┤
+        │Z│X│C│  → 6 7 8        │1│2│3│  → 6 7 8
+        └─┴─┴─┘                 └─┴─┴─┘
+
+    Restart prompt no LCD (code 33). Responder com '1' (sim) ou '2' (não).
+
+    Layout do framebuffer 80×60:
+
+        y= 0..8   placar (3 linhas de 3 px: P1 vermelho, P2 verde, empate branco)
+        y= 9      vão
+        y=10..59  tabuleiro 3×3 (gridlines verticais x=26 e x=53;
+                  horizontais y=26 e y=43)
+*/
+
+int board[9];           /* 0 vazia, 1 P1, 2 P2 */
+int win_lines[24];      /* 8 linhas × 3 células */
+int current_player;     /* 1 ou 2 */
+int moves_count;
+int winner;
+int game_over;
+
+int p1_wins;
+int p2_wins;
+int ties;
+int restart;
+
+int P1_COLOR;
+int P2_COLOR;
+int GRID_COLOR;
+int TIE_COLOR;
+
+/* ============================================================
+   Inicialização (uma vez no boot — não é refeito a cada partida)
+   ============================================================ */
+
+void init_constants(void) {
+    P1_COLOR   = 4;     /* 100 = vermelho */
+    P2_COLOR   = 2;     /* 010 = verde   */
+    GRID_COLOR = 7;     /* 111 = branco  */
+    TIE_COLOR  = 7;     /* mesmo branco para o placar de empates */
+
+    p1_wins = 0;
+    p2_wins = 0;
+    ties    = 0;
+
+    /* Linhas (3) */
+    win_lines[0] = 0;  win_lines[1] = 1;  win_lines[2] = 2;
+    win_lines[3] = 3;  win_lines[4] = 4;  win_lines[5] = 5;
+    win_lines[6] = 6;  win_lines[7] = 7;  win_lines[8] = 8;
+
+    /* Colunas (3) */
+    win_lines[9]  = 0; win_lines[10] = 3; win_lines[11] = 6;
+    win_lines[12] = 1; win_lines[13] = 4; win_lines[14] = 7;
+    win_lines[15] = 2; win_lines[16] = 5; win_lines[17] = 8;
+
+    /* Diagonais (2) */
+    win_lines[18] = 0; win_lines[19] = 4; win_lines[20] = 8;
+    win_lines[21] = 2; win_lines[22] = 4; win_lines[23] = 6;
+}
+
+/* Reset por partida — não toca em contadores nem em win_lines. */
+void init_game_state(void) {
+    int i;
+
+    i = 0;
+    while (i < 9) {
+        board[i] = 0;
+        i = i + 1;
+    }
+
+    current_player = 1;
+    moves_count = 0;
+    winner = 0;
+    game_over = 0;
+}
+
+/* ============================================================
+   Helpers de desenho
+   ============================================================ */
+
+/* Pinta um retângulo (x0,y0) com largura w e altura h. */
+void draw_block(int x0, int y0, int w, int h, int color) {
+    int i;
+    int j;
+
+    i = 0;
+    while (i < h) {
+        j = 0;
+        while (j < w) {
+            draw_pixel((y0 + i) * 80 + (x0 + j), color);
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+}
+
+/* Limpa a faixa horizontal y_start..y_end-1 (pinta de preto = cor 0). */
+void clear_area(int y_start, int y_end) {
+    int i;
+    int j;
+
+    i = y_start;
+    while (i < y_end) {
+        j = 0;
+        while (j < 80) {
+            draw_pixel(i * 80 + j, 0);
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+}
+
+/* ============================================================
+   Placar (y=0..8): cada vitória vira um bloco 4×3 colorido
+   ============================================================ */
+
+void draw_score_row(int y_top, int count, int color) {
+    int k;
+
+    k = 0;
+    while (k < count) {
+        draw_block(k * 5, y_top, 4, 3, color);
+        k = k + 1;
+    }
+}
+
+void draw_scoreboard(void) {
+    draw_score_row(0, p1_wins, P1_COLOR);    /* y=0..2 vermelho */
+    draw_score_row(3, p2_wins, P2_COLOR);    /* y=3..5 verde    */
+    draw_score_row(6, ties,    TIE_COLOR);   /* y=6..8 branco   */
+}
+
+/* ============================================================
+   Tabuleiro (y=10..59)
+   ============================================================ */
+
+void draw_grid(void) {
+    int i;
+
+    /* Verticais em x=26 e x=53, varrendo y=10..59 */
+    i = 10;
+    while (i < 60) {
+        draw_pixel(i * 80 + 26, GRID_COLOR);
+        draw_pixel(i * 80 + 53, GRID_COLOR);
+        i = i + 1;
+    }
+
+    /* Horizontais em y=26 e y=43, varrendo x=0..79 */
+    i = 0;
+    while (i < 80) {
+        draw_pixel(26 * 80 + i, GRID_COLOR);
+        draw_pixel(43 * 80 + i, GRID_COLOR);
+        i = i + 1;
+    }
+}
+
+/* Marca a célula com o bloco do jogador. */
+void draw_mark(int cell, int color) {
+    int row;
+    int col;
+    int x0;
+    int y0;
+
+    row = cell / 3;
+    col = cell - row * 3;
+
+    /* Cada célula é 26 × 16 (com gap pra gridline). Bloco 16×10 centralizado. */
+    x0 = col * 27 + 5;
+    y0 = 10 + row * 17 + 3;
+
+    draw_block(x0, y0, 16, 10, color);
+}
+
+/* ============================================================
+   Mapeamento de teclas — ifs encadeados, sem aritmética no return
+   ============================================================ */
+
+int key_to_cell_p1(int key) {
+    /* ASCII: Q=81 W=87 E=69 A=65 S=83 D=68 Z=90 X=88 C=67 */
+    if (key == 81) { return 0; }
+    if (key == 87) { return 1; }
+    if (key == 69) { return 2; }
+    if (key == 65) { return 3; }
+    if (key == 83) { return 4; }
+    if (key == 68) { return 5; }
+    if (key == 90) { return 6; }
+    if (key == 88) { return 7; }
+    if (key == 67) { return 8; }
+    return 99;
+}
+
+int key_to_cell_p2(int key) {
+    /* ASCII do numpad (NumLock ON): 7=55 8=56 9=57 4=52 5=53 6=54 1=49 2=50 3=51 */
+    if (key == 55) { return 0; }
+    if (key == 56) { return 1; }
+    if (key == 57) { return 2; }
+    if (key == 52) { return 3; }
+    if (key == 53) { return 4; }
+    if (key == 54) { return 5; }
+    if (key == 49) { return 6; }
+    if (key == 50) { return 7; }
+    if (key == 51) { return 8; }
+    return 99;
+}
+
+/* ============================================================
+   Checagem de critério de vitória (return é sempre variável simples)
+   ============================================================ */
+
+int check_winner(void) {
+    int line;
+    int i0;
+    int a;
+    int b;
+    int c;
+
+    line = 0;
+    while (line < 8) {
+        i0 = line * 3;
+        a = board[win_lines[i0]];
+        b = board[win_lines[i0 + 1]];
+        c = board[win_lines[i0 + 2]];
+        if (a != 0) {
+            if (a == b) {
+                if (a == c) {
+                    return a;
+                }
+            }
+        }
+        line = line + 1;
+    }
+    return 0;
+}
+
+/* ============================================================
+   Lê entrada + Vez do P? + Jogada + Desenha a jogada
+   ============================================================ */
+
+void play_turn(void) {
+    int key;
+    int cell;
+    int valid;
+
+    valid = 0;
+    while (valid == 0) {
+        key = keyboard_input();
+        if (key > 0) {
+            if (current_player == 1) {
+                cell = key_to_cell_p1(key);
+            }
+            else {
+                cell = key_to_cell_p2(key);
+            }
+
+            if (cell != 99) {
+                if (board[cell] == 0) {
+                    board[cell] = current_player;
+                    if (current_player == 1) {
+                        draw_mark(cell, P1_COLOR);
+                    }
+                    else {
+                        draw_mark(cell, P2_COLOR);
+                    }
+                    valid = 1;
+                }
+            }
+        }
+    }
+}
+
+/* ============================================================
+   Símbolo do vencedor (overlay no centro do tabuleiro)
+       P1 venceu → "I"  (uma barra vertical vermelha)
+       P2 venceu → "II" (duas barras verticais verdes)
+       empate    → barra horizontal branca no meio
+   ============================================================ */
+
+void draw_winner_overlay(void) {
+    if (winner == 1) {
+        /* "I" — 6 × 24, centralizado horizontalmente em x=37 */
+        draw_block(37, 23, 6, 24, P1_COLOR);
+    }
+    else {
+        if (winner == 2) {
+            /* "II" — duas barras 6 × 24, em x=30 e x=44 */
+            draw_block(30, 23, 6, 24, P2_COLOR);
+            draw_block(44, 23, 6, 24, P2_COLOR);
+        }
+        else {
+            /* Empate — barra horizontal 50 × 4 no meio do tabuleiro */
+            draw_block(15, 33, 50, 4, TIE_COLOR);
+        }
+    }
+}
+
+/* ============================================================
+   Pergunta de reinício via LCD + teclado
+       '1' = Sim (restart = 1)
+       '2' = Nao (restart = 0)
+   ============================================================ */
+
+void ask_restart(void) {
+    int key;
+    int answered;
+
+    show_lcd(33);   /* "Reiniciar?" / "1=Sim 2=Nao" */
+
+    answered = 0;
+    while (answered == 0) {
+        key = keyboard_input();
+        if (key == 49) {        /* '1' */
+            restart = 1;
+            answered = 1;
+        }
+        else {
+            if (key == 50) {    /* '2' */
+                restart = 0;
+                answered = 1;
+            }
+        }
+    }
+}
+
+/* ============================================================
+   Envia o resultado da partida ao Arduino (buzzer) via UART (TX) e
+   aguarda o ACK de "fim de som" (RX) antes de continuar.
+       winner == 1 -> envia 1 (P1 venceu)
+       winner == 2 -> envia 2 (P2 venceu)
+       caso contrário -> envia 3 (empate)
+   Fluxo:
+       1) espera a TX ficar livre e transmite o byte do resultado;
+       2) o Arduino toca a melodia e, ao terminar, devolve 1 byte (ACK);
+       3) a CPU fica em busy-wait até receber o ACK e só então prossegue.
+   ============================================================ */
+
+void send_result(void) {
+    int ack;
+
+    while (uart_tx_ready() == 0) {
+        no_op();
+    }
+
+    if (winner == 1) {
+        uart_send(1);
+    }
+    else {
+        if (winner == 2) {
+            uart_send(2);
+        }
+        else {
+            uart_send(3);
+        }
+    }
+
+    /* Aguarda o Arduino avisar que o som terminou antes de prosseguir */
+    while (uart_rx_available() == 0) {
+        no_op();
+    }
+    ack = uart_receive();
+}
+
+/* ============================================================
+   Fluxo principal — laço externo de restart envolvendo o jogo
+   ============================================================ */
+
+int main(void) {
+    int outer_running;
+
+    init_constants();
+
+    outer_running = 1;
+    while (outer_running == 1) {
+        init_game_state();
+
+        /* Toda partida começa com o tabuleiro limpo (o placar y=0..8 fica).
+           Limpa y=10..59 e redesenha o grid — assim uma rodada nunca herda as
+           marcações da anterior. No 1º boot a BRAM já é zero, então limpar aqui
+           é inofensivo e garante consistência em qualquer caminho. */
+        clear_area(10, 60);
+        draw_grid();
+
+        /* Laço de uma partida (espelha o schematic) */
+        while (game_over == 0) {
+            play_turn();
+            moves_count = moves_count + 1;
+            winner = check_winner();
+
+            if (winner != 0) {
+                game_over = 1;
+            }
+            else {
+                if (moves_count >= 9) {
+                    game_over = 1;
+                }
+                else {
+                    if (current_player == 1) {
+                        current_player = 2;
+                    }
+                    else {
+                        current_player = 1;
+                    }
+                }
+            }
+        }
+
+        /* Atualiza placar interno */
+        if (winner == 1) {
+            p1_wins = p1_wins + 1;
+        }
+        else {
+            if (winner == 2) {
+                p2_wins = p2_wins + 1;
+            }
+            else {
+                ties = ties + 1;
+            }
+        }
+
+        /* Redesenha o placar (limpa a faixa e pinta as barras novas) */
+        clear_area(0, 9);
+        draw_scoreboard();
+
+        /* Soa o resultado desenhando "I" / "II" / barra de empate */
+        draw_winner_overlay();
+
+        /* Avisa o Arduino (buzzer) qual foi o resultado da partida */
+        send_result();
+
+        /* Pergunta no LCD se reinicia */
+        ask_restart();
+
+        /* O tabuleiro será limpo no topo do laço (clear_area + draw_grid).
+           Se o jogador não quis reiniciar, encerra o laço externo. */
+        if (restart == 0) {
+            outer_running = 0;
+        }
+    }
+
+    /* Fim — HALT (o SO captura via interrupt type 2) */
+    return 0;
+}
